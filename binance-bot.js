@@ -1,8 +1,8 @@
-'use strict';
+var binance = require('node-binance-api'),
+    config = require('./config/config');
 
-const http = require('http');
-
-var server = http.createServer(function (req, res) {
-    res.end('Hello, World!');
+binance.options(config.get('binance'));
+binance.bookTickers((error, ticker) => {
+    console.log("bookTickers()", ticker);
+    console.log("Price of BNB: ", ticker.BNBBTC);
 });
-server.listen(3000, '127.0.0.1');

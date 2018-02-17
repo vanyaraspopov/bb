@@ -1,0 +1,8 @@
+{
+  "binance": {
+    "APIKEY": "<api_key>",
+    "APISECRET": "<api_secret>",
+    "useServerTime": true,
+    "test": true
+  }
+}

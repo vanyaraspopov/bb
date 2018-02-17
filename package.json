@@ -11,5 +11,9 @@
     "url": "github.example"
   },
   "author": "RV",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "nconf": "^0.10.0",
+    "node-binance-api": "^0.4.20"
+  }
 }
