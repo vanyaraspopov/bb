@@ -4,5 +4,7 @@
 out
 gen
 
+*.log
+
 /node_modules/
 /config/config.json
