@@ -17,14 +17,6 @@ module.exports = {
       closed: {
         type: Sequelize.BOOLEAN
       },
-      createdAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      },
-      updatedAt: {
-        allowNull: false,
-        type: Sequelize.DATE
-      }
     });
   },
   down: (queryInterface, Sequelize) => {

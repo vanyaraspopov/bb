@@ -1,18 +1,31 @@
 'use strict';
-var Sequelize = require('sequelize'),
-    config = require('../config/config');
-let sequelize = null;
-module.exports = () => {
-    if (!sequelize) {
-        sequelize = new Sequelize(
-            config.get('db').name,
-            config.get('db').username,
-            config.get('db').password,
-            {
-                dialect: config.get('db').dialect,
-                storage: config.get('db').storage
-            }
-        );
+
+var fs        = require('fs');
+var path      = require('path');
+var Sequelize = require('sequelize');
+var modelsDir = __dirname + '/models';
+var config    = require('../config/config.json')['db'];
+var db        = {};
+
+var sequelize = new Sequelize(config.database, config.username, config.password, config);
+
+fs
+    .readdirSync(modelsDir)
+    .filter(file => {
+        return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file.slice(-3) === '.js');
+    })
+    .forEach(file => {
+        var model = sequelize['import'](path.join(modelsDir, file));
+        db[model.name] = model;
+    });
+
+Object.keys(db).forEach(modelName => {
+    if (db[modelName].associate) {
+        db[modelName].associate(db);
     }
-    return sequelize;
-};
+});
+
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;

@@ -4,5 +4,10 @@
     "APISECRET": "<api_secret>",
     "useServerTime": true,
     "test": true
+  },
+  "db": {
+    "dialect": "sqlite",
+    "database": "<database>",
+    "storage": "./path/to/database"
   }
 }
