@@ -1,8 +1,15 @@
 const binance = require('node-binance-api');
+const db = require('../../database/db');
 const math = require('mathjs');
 const moment = require('moment');
 
+const AggTrade = db.sequelize.models['AggTrade'];
+
 let bot = {
+    config: {
+        symbol: 'ETHBTC',
+        quantityPrecision: 8,
+    },
     run() {
         let collectDataPeriod = 60 * 1000;  //  ms
         let collectDataInterval = setInterval(() => collectData(), collectDataPeriod);
@@ -10,8 +17,8 @@ let bot = {
     }
 };
 
-function getAggTrades(startTime, endTime, cb) {
-    binance.aggTrades("ETHBTC",
+function getAggTrades(symbol, startTime, endTime, cb) {
+    binance.aggTrades(symbol,
         {
             startTime: startTime,
             endTime: endTime
@@ -32,19 +39,23 @@ function collectData() {
 
     //  millisecond timestamps
     let prevMinuteStart_msts = prevMinuteStart.unix() * 1000;
-    let prevMinuteEnd_msts = prevMinuteEnd.unix() * 1000;
+    let prevMinuteEnd_msts = prevMinuteEnd.unix() * 1000 - 1;
 
-    getAggTrades(prevMinuteStart_msts, prevMinuteEnd_msts, (response) => {
+    getAggTrades(bot.config.symbol, prevMinuteStart_msts, prevMinuteEnd_msts, (response) => {
         let prices = [];
         let quantity = 0;
         for (let trade of response) {
             prices.push(Number(trade.p));
             quantity += Number(trade.q);
         }
-        let avgPrice = prices.reduce((a, b) => a + b) / prices.length;
+        AggTrade.create({
+            timeStart: prevMinuteStart_msts,
+            timeEnd: prevMinuteEnd_msts,
+            quantity: quantity.toFixed(bot.config.quantityPrecision)
+        });
+        console.log("period", prevMinuteStart_msts, prevMinuteEnd_msts);
         console.log("response length:", response.length);
-        console.log("avg price:", avgPrice);
-        console.log("total quantity:", quantity);
+        console.log("total quantity:", quantity.toFixed(bot.config.quantityPrecision));
     });
 }
 
