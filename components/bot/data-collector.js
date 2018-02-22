@@ -2,6 +2,7 @@
 
 const binance = require('node-binance-api');
 const db = require('../../database/db');
+const logger = require('../../components/logger/logger');
 const moment = require('moment');
 
 const AggTrade = db.sequelize.models['AggTrade'];
@@ -26,7 +27,7 @@ function getAggTrades(symbol, startTime, endTime, cb) {
         },
         (error, response) => {
             if (error) {
-                console.log(error);
+                logger.error(error);
                 cb([]);
             }
             cb(response);
@@ -55,10 +56,9 @@ function collectData() {
             timeStart: prevMinuteStart_msts,
             timeEnd: prevMinuteEnd_msts,
             quantity: quantity.toFixed(dataCollector.config.quantityPrecision)
+        }).catch(error => {
+            logger.error(error);
         });
-        console.log("period", prevMinuteStart_msts, prevMinuteEnd_msts);
-        console.log("response length:", response.length);
-        console.log("total quantity:", quantity.toFixed(dataCollector.config.quantityPrecision));
     });
 }
 
