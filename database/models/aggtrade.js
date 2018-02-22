@@ -1,6 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
     var AggTrade = sequelize.define('AggTrade', {
+        symbol: DataTypes.STRING,
         timeStart: DataTypes.BIGINT,
         timeEnd: DataTypes.BIGINT,
         quantity: DataTypes.DECIMAL
