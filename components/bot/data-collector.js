@@ -9,7 +9,7 @@ const AggTrade = db.sequelize.models['AggTrade'];
 
 let dataCollector = {
     config: {
-        symbol: 'ETHBTC',
+        symbols: ['ETHBTC', 'NEOBTC'],
         quantityPrecision: 8,
     },
     run() {
@@ -43,23 +43,36 @@ function collectData() {
     let prevMinuteStart_msts = prevMinuteStart.unix() * 1000;
     let prevMinuteEnd_msts = prevMinuteEnd.unix() * 1000 - 1;
 
-    let symbol = dataCollector.config.symbol;
-    getAggTrades(symbol, prevMinuteStart_msts, prevMinuteEnd_msts, (response) => {
-        let prices = [];
-        let quantity = 0;
-        for (let trade of response) {
-            prices.push(Number(trade.p));
-            quantity += Number(trade.q);
-        }
-        AggTrade.create({
-            symbol: symbol,
-            timeStart: prevMinuteStart_msts,
-            timeEnd: prevMinuteEnd_msts,
-            quantity: quantity.toFixed(dataCollector.config.quantityPrecision)
+    for (let symbol of dataCollector.config.symbols) {
+        AggTrade.count({
+            where: {
+                symbol: symbol,
+                timeStart: prevMinuteStart_msts,
+                timeEnd: prevMinuteEnd_msts
+            }
+        }).then((count) => {
+            if (count === 0) {
+                getAggTrades(symbol, prevMinuteStart_msts, prevMinuteEnd_msts, (response) => {
+                    let prices = [];
+                    let quantity = 0;
+                    for (let trade of response) {
+                        prices.push(Number(trade.p));
+                        quantity += Number(trade.q);
+                    }
+                    AggTrade.create({
+                        symbol: symbol,
+                        timeStart: prevMinuteStart_msts,
+                        timeEnd: prevMinuteEnd_msts,
+                        quantity: quantity.toFixed(dataCollector.config.quantityPrecision)
+                    }).catch(error => {
+                        logger.error(error);
+                    });
+                });
+            }
         }).catch(error => {
             logger.error(error);
         });
-    });
+    }
 }
 
 module.exports = dataCollector;
