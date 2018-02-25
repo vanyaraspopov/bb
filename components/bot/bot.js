@@ -1,9 +1,29 @@
+const db = require('../../database/db');
+
+//  Models
+const AggTrade = db.sequelize.models['AggTrade'];
+
 const PRECISION_QUANTITY = 8;
+
+let rules = {
+    common: {
+        buyCoef: 5,
+        periodFull: 30,
+        quantityPrecision: 8
+    },
+    symbols: {
+        'ETHBTC': {
+            buyCoef: 5
+        },
+        'NEOBTC': {}
+    }
+};
 
 class Bot {
 
     constructor(bb) {
         this.bb = bb;
+        this.rules = rules;
     }
 
     /**
@@ -60,19 +80,7 @@ class Bot {
      * @param {string} rule Name of rule
      */
     _tradingRules(symbol, rule) {
-        let rules = {
-            common: {
-                buyCoef: 5,
-                periodFull: 30,
-                quantityPrecision: 8
-            },
-            symbols: {
-                'ETHBTC': {
-                    buyCoef: 5
-                },
-                'NEOBTC': {}
-            }
-        };
+        let rules = this.rules;
         if (symbol === undefined) return rules.common;
         if (symbol === 'symbols') {
             let symbols = [];
@@ -98,7 +106,6 @@ class Bot {
             let periodFull = this._tradingRules(symbol, 'periodFull');
             let buyCoef = this._tradingRules(symbol, 'buyCoef');
 
-            const AggTrade = this.bb.models['AggTrade'];
             AggTrade.findAll({
                 limit: periodFull,
                 order: [

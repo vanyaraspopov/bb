@@ -1,21 +1,24 @@
-const binance = require('node-binance-api');
+const api = require('node-binance-api');
 const config = require('./config/config.json');
-const dataCollector = require('./components/bot/data-collector');
 const db = require('./database/db');
 const logger = require('./components/logger/logger');
 
 //  Classes
 const Bot = require('./components/bot/bot');
+const DataCollector = require('./components/bot/data-collector');
 
 let bb = {
     config,
     components: {
-        binance,
+        api,
         db,
         logger
     },
 
     //  Aliases
+    get api() {
+        return this.components.api;
+    },
     get db() {
         return this.components.db
     },
@@ -28,7 +31,8 @@ let bb = {
 
 };
 
-dataCollector.run();
+bb.components.dataCollector = new DataCollector(bb);
+bb.components.dataCollector.run();
 
 bb.components.bot = new Bot(bb);
 bb.components.bot.run();
