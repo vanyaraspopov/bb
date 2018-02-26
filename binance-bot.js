@@ -1,4 +1,4 @@
-const api = require('node-binance-api');
+const api = require('./components/api/api');
 const config = require('./config/config.json');
 const db = require('./database/db');
 const logger = require('./components/logger/logger');
