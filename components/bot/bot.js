@@ -101,20 +101,21 @@ class Bot {
         }
     }
 
-    _work() {
+    async _work() {
         for (let symbol of this._tradingRules('symbols')) {
             let periodFull = this._tradingRules(symbol, 'periodFull');
             let buyCoef = this._tradingRules(symbol, 'buyCoef');
 
-            AggTrade.findAll({
-                limit: periodFull,
-                order: [
-                    ['id', 'DESC']
-                ],
-                where: {
-                    symbol: symbol
-                }
-            }).then((lastTrades) => {
+            try {
+                let lastTrades = await AggTrade.findAll({
+                    limit: periodFull,
+                    order: [
+                        ['id', 'DESC']
+                    ],
+                    where: {
+                        symbol: symbol
+                    }
+                });
                 lastTrades.sort((a, b) => {
                     if (a.id > b.id) {
                         return 1;
@@ -133,17 +134,15 @@ class Bot {
                         }
                     );
                 } else {
-                    return new Promise((resolve, reject) => {
-                        reject({
-                            message: 'Last trades haven\'t pass checking',
-                            symbol,
-                            lastTrades
-                        });
+                    this.bb.log.error({
+                        message: 'Last trades haven\'t pass checking',
+                        symbol,
+                        lastTrades
                     });
                 }
-            }).catch(error => {
+            } catch (error) {
                 this.bb.log.error(error);
-            });
+            }
         }
     }
 
