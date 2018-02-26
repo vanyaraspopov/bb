@@ -16,22 +16,21 @@ class DataCollector {
         this.config = config;
     }
 
-    getAggTrades(symbol, startTime, endTime, cb) {
-        this.bb.api.aggTrades(symbol,
-            {
-                startTime: startTime,
-                endTime: endTime
-            },
-            (error, response) => {
-                if (error) {
-                    this.bb.log.error(error);
-                    cb([]);
-                }
-                cb(response);
+    async getAggTrades(symbol, startTime, endTime) {
+        let aggTrades = [];
+        try {
+            aggTrades = await this.bb.api.aggTrades({
+                symbol,
+                startTime,
+                endTime
             });
+        } catch (error) {
+            this.bb.log.error(error);
+        }
+        return aggTrades;
     }
 
-    collectData() {
+    async collectData() {
         let time = moment();
         let prevMinuteStart = moment(time).startOf('minute').subtract(1, 'minutes');
         let prevMinuteEnd = moment(time).startOf('minute');
@@ -41,34 +40,27 @@ class DataCollector {
         let prevMinuteEnd_msts = prevMinuteEnd.unix() * 1000 - 1;
 
         for (let symbol of this.config.symbols) {
-            AggTrade.count({
-                where: {
-                    symbol: symbol,
-                    timeStart: prevMinuteStart_msts,
-                    timeEnd: prevMinuteEnd_msts
-                }
-            }).then((count) => {
+            try {
+                let count = await AggTrade.count({
+                    where: {
+                        symbol: symbol,
+                        timeStart: prevMinuteStart_msts,
+                        timeEnd: prevMinuteEnd_msts
+                    }
+                });
                 if (count === 0) {
-                    this.getAggTrades(symbol, prevMinuteStart_msts, prevMinuteEnd_msts, (response) => {
-                        let prices = [];
-                        let quantity = 0;
-                        for (let trade of response) {
-                            prices.push(Number(trade.p));
-                            quantity += Number(trade.q);
-                        }
-                        AggTrade.create({
-                            symbol: symbol,
-                            timeStart: prevMinuteStart_msts,
-                            timeEnd: prevMinuteEnd_msts,
-                            quantity: quantity.toFixed(this.config.quantityPrecision)
-                        }).catch(error => {
-                            this.bb.log.error(error);
-                        });
-                    });
+                    let aggTrades = await this.getAggTrades(symbol, prevMinuteStart_msts, prevMinuteEnd_msts);
+                    let quantity = aggTrades.reduce((sum, trade) => sum + Number(trade.quantity), 0);
+                    AggTrade.create({
+                        symbol: symbol,
+                        timeStart: prevMinuteStart_msts,
+                        timeEnd: prevMinuteEnd_msts,
+                        quantity: quantity.toFixed(this.config.quantityPrecision)
+                    })
                 }
-            }).catch(error => {
+            } catch (error) {
                 this.bb.log.error(error);
-            });
+            }
         }
     }
 

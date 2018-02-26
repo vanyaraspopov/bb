@@ -1,4 +1,9 @@
-const api = require('node-binance-api');
+const client = require('binance-api-node').default;
 const config = require('../../config/config.json')['binance'];
-api.options(config);
+
+const api = client({
+    apiKey: config['APIKEY'],
+    apiSecret: config['APISECRET'],
+});
+
 module.exports = api;
