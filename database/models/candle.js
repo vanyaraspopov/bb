@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
         volume: DataTypes.DECIMAL,
         quoteAssetVolume: DataTypes.DECIMAL,
         baseAssetVolume: DataTypes.DECIMAL,
-        trades: DataTypes.INTEGER
+        trades: DataTypes.INTEGER,
+        symbol: DataTypes.STRING
     }, {
         tableName: 'candles',
     });

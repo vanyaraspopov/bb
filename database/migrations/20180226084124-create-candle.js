@@ -47,6 +47,10 @@ module.exports = {
       trades: {
         allowNull: false,
         type: Sequelize.INTEGER
+      },
+      symbol: {
+        allowNull: false,
+        type: Sequelize.STRING
       }
     });
   },

@@ -2,3 +2,4 @@
 binance_bot_db
 config/config.json
 /binance_bot_db_remote
+/binance_bot_db-journal

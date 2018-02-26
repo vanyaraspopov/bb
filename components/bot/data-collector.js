@@ -1,8 +1,10 @@
 const db = require('../../database/db');
+const math = require('mathjs');
 const moment = require('moment');
 
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
+const Candle = db.sequelize.models['Candle'];
 
 let config = {
     symbols: ['ETHBTC', 'NEOBTC'],
@@ -28,6 +30,52 @@ class DataCollector {
             this.bb.log.error(error);
         }
         return aggTrades;
+    }
+
+    async collectCandles(gettingCandlesInterval) {
+        let time = moment();
+
+        let minutes = math.round(gettingCandlesInterval / 60 / 1000);
+        let lastMinutes = [];
+        for (let i = 0; i < minutes; i++) {
+            let prevMinute = moment(time).subtract(i + 1, 'minutes');
+            let prevMinuteStart = moment(prevMinute).startOf('minute').unix() * 1000;
+            let prevMinuteEnd = moment(prevMinute).startOf('minute').add(1, 'minutes').unix() * 1000 - 1;
+            lastMinutes.unshift({
+                start: prevMinuteStart,
+                end: prevMinuteEnd
+            });
+        }
+
+        for (let symbol of this.config.symbols) {
+            try {
+                let candles = await this.bb.api.candles({
+                    symbol: symbol,
+                    interval: '1m',
+                    startTime: lastMinutes[0].start,
+                    endTime: lastMinutes[lastMinutes.length - 1].end,
+                });
+                for (let candle of candles) {
+                    Candle.count({
+                        where: {
+                            symbol: symbol,
+                            openTime: candle.openTime,
+                            closeTime: candle.closeTime
+                        }
+                    }).then(count => {
+                        if (count === 0) {
+                            candle.symbol = symbol;
+                            return Candle.create(candle);
+                        }
+                    }).catch(error => {
+                        this.bb.log.error(error);
+                    });
+                }
+            } catch (error) {
+                this.bb.log.error(error);
+            }
+        }
+
     }
 
     async collectData() {
@@ -68,6 +116,10 @@ class DataCollector {
         let collectDataPeriod = 60 * 1000;  //  ms
         let collectDataInterval = setInterval(() => this.collectData(), collectDataPeriod);
         this.collectData();
+
+        let gettingCandlesInterval = 5 * 60 * 1000;
+        setInterval(() => this.collectCandles(gettingCandlesInterval), gettingCandlesInterval);
+        this.collectCandles(gettingCandlesInterval);
     }
 }
 
