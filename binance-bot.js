@@ -32,7 +32,6 @@ let bb = {
 };
 
 bb.components.dataCollector = new DataCollector(bb);
-bb.components.dataCollector.run();
-
 bb.components.bot = new Bot(bb);
-bb.components.bot.run();
+
+module.exports = bb;

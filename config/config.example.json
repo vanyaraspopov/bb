@@ -9,5 +9,9 @@
     "dialect": "sqlite",
     "database": "<database>",
     "storage": "./path/to/database"
+  },
+  "server": {
+    "port": "3000",
+    "host": "localhost"
   }
 }
