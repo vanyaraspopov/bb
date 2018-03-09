@@ -16,10 +16,13 @@ module.exports =  (app) => {
                     }
                     let processes = {};
                     let modules = config['pm2']['modules'];
-                    for (let moduleName of modules) {
-                        processes[moduleName] = {
-                            status: null
-                        };
+                    for (let moduleName in modules) {
+                        if (modules.hasOwnProperty(moduleName)) {
+                            processes[moduleName] = {
+                                title: modules[moduleName],
+                                status: null
+                            };
+                        }
                     }
                     for (let p of processList) {
                         if (processes.hasOwnProperty(p.name)) {

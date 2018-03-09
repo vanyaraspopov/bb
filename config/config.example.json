@@ -10,6 +10,12 @@
     "database": "<database>",
     "storage": "./path/to/database"
   },
+  "pm2": {
+    "modules": {
+      "bb.data-collector": "Сбор данных",
+      "bb.trader": "Торговля"
+    }
+  },
   "server": {
     "port": "3000",
     "host": "localhost"
