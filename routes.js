@@ -1,5 +1,10 @@
-const config = require('./config/config.json');
+const bb = require('./binance-bot');
+const config = bb.config;
+const db = bb.components.db;
 const pm2 = require('pm2');
+
+//  Models
+const Currency = db.sequelize.models['Currency'];
 
 module.exports = (app) => {
 
@@ -68,34 +73,51 @@ module.exports = (app) => {
     });
 
     app.get(API_URI + '/currencies', (request, response) => {
-        response.send([
-            {
-                symbol: 'ETHBTC',
-                quot: 'ETH',
-                base: 'BTC',
-                sum: 0.001,
-                buy: 5,
-                sellHigh: '2%',
-                sellLow: '10%',
-                modules: {
-                    'bb.trader': true,
-                    'bb.data-collector': true
-                }
-            },
-            {
-                symbol: 'LTCBTC',
-                quot: 'LTC',
-                base: 'BTC',
-                sum: 0.001,
-                buy: 5,
-                sellHigh: '',
-                sellLow: '',
-                modules: {
-                    'bb.trader': false,
-                    'bb.data-collector': true
-                }
-            }
-        ]);
+        Currency
+            .findAll()
+            .then(currencies => response.send(currencies))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.post(API_URI + '/currencies', (request, response) => {
+        let values = request.body;
+        Currency.create(values)
+            .then(currency => response.send(currency))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.put(API_URI + '/currencies/:id', (request, response) => {
+        let id = request.params.id;
+        let values = request.body;
+        Currency
+            .findById(id)
+            .then(currency => {
+                currency = Object.assign(currency, values);
+                return currency.save();
+            })
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.delete(API_URI + '/currencies/:id', (request, response) => {
+        let id = request.params.id;
+        Currency
+            .findById(id)
+            .then(currency => currency.destroy())
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
     });
 
 };
