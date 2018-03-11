@@ -2,28 +2,19 @@ const db = require('../../database/db');
 
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
+const Currency = db.sequelize.models['Currency'];
 
 const PRECISION_QUANTITY = 8;
 
-let rules = {
-    common: {
-        buyCoef: 5,
-        periodFull: 30,
-        quantityPrecision: 8
-    },
-    symbols: {
-        'ETHBTC': {
-            buyCoef: 5
-        },
-        'NEOBTC': {}
-    }
+let config = {
+    period: 30
 };
 
 class Bot {
 
     constructor(bb) {
         this.bb = bb;
-        this.rules = rules;
+        this.config = config;
     }
 
     /**
@@ -50,10 +41,9 @@ class Bot {
      * Compares trades quantities of two last periods
      * @param {Array} trades Last trades data
      * @param {int} period Length of each period, min
-     * @param {Number} buyCoef Coefficient to buy
-     * @param {Function} buyFunc Callback buy-function
+     * @return {Number}
      */
-    _compareTradesQuantity(trades, period, buyCoef, buyFunc) {
+    _compareTradesQuantity(trades, period) {
         let lastPeriod = trades;
         let firstPeriod = lastPeriod.splice(0, period);
 
@@ -69,70 +59,48 @@ class Bot {
         }
         secondPeriodQuantity = secondPeriodQuantity.toFixed(PRECISION_QUANTITY);
 
-        if (secondPeriodQuantity / firstPeriodQuantity >= buyCoef) {
-            buyFunc();
-        }
+        return secondPeriodQuantity / firstPeriodQuantity;
     }
 
     /**
-     * Returns trading rules
-     * @param {string} symbol Symbol's name
-     * @param {string} rule Name of rule
+     * Sort array of objects
+     * @param {Array} array of objects with property "key"
+     * @param {string} property Name of property to sort by
+     * @param {string} direction ASC|DESC
+     * @private
      */
-    _tradingRules(symbol, rule) {
-        let rules = this.rules;
-        if (symbol === undefined) return rules.common;
-        if (symbol === 'symbols') {
-            let symbols = [];
-            for (let _symbol in rules.symbols) {
-                if (rules.symbols.hasOwnProperty(_symbol)) {
-                    symbols.push(_symbol);
-                }
+    _sortByProperty(array, property, direction = 'ASC') {
+        let asc = 1;
+        if (direction === 'DESC') asc = -1;
+        array.sort((a, b) => {
+            if (a[property] > b[property]) {
+                return asc;
+            } else if (a[property] < b[property]) {
+                return -asc;
             }
-            return symbols;
-        }
-        if (rules.symbols[symbol] !== undefined) {
-            if (rule !== undefined) {
-                return rules.symbols[symbol][rule] ?
-                    rules.symbols[symbol][rule] :
-                    rules.common[rule];
-            }
-            return Object.assign(rules.common, rules.symbols[symbol]);
-        }
+            return 0;
+        });
     }
 
     async _work() {
-        for (let symbol of this._tradingRules('symbols')) {
-            let periodFull = this._tradingRules(symbol, 'periodFull');
-            let buyCoef = this._tradingRules(symbol, 'buyCoef');
-
-            try {
+        try {
+            let activeCurrencies = await Currency.findAll({where: {active: 1}});
+            for (let currency of activeCurrencies) {
+                let symbol = currency.quot + currency.base;
+                let params = JSON.parse(currency.params);
+                let period = this.config.period;
+                let ratioToBuy = params['buy'];
                 let lastTrades = await AggTrade.findAll({
-                    limit: periodFull,
-                    order: [
-                        ['id', 'DESC']
-                    ],
-                    where: {
-                        symbol: symbol
-                    }
+                    limit: period,
+                    order: [['id', 'DESC']],
+                    where: {symbol: symbol}
                 });
-                lastTrades.sort((a, b) => {
-                    if (a.id > b.id) {
-                        return 1;
-                    } else if (a.id < b.id) {
-                        return -1;
-                    }
-                    return 0;
-                });
+                this._sortByProperty(lastTrades, 'id', 'ASC');
                 if (this._checkTradesSequence(lastTrades)) {
-                    this._compareTradesQuantity(
-                        lastTrades,
-                        parseInt(periodFull / 2),
-                        buyCoef,
-                        () => {
-                            this.bb.log.info('Signal to do something', lastTrades);
-                        }
-                    );
+                    let quantityRatio = this._compareTradesQuantity(lastTrades, parseInt(period / 2));
+                    if (quantityRatio >= ratioToBuy) {
+                        this.bb.log.info('Signal to do something', lastTrades);
+                    }
                 } else {
                     this.bb.log.error({
                         message: 'Last trades haven\'t pass checking',
@@ -140,9 +108,9 @@ class Bot {
                         lastTrades
                     });
                 }
-            } catch (error) {
-                this.bb.log.error(error);
             }
+        } catch (error) {
+            this.bb.log.error(error);
         }
     }
 
