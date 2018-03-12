@@ -1,8 +1,10 @@
 const db = require('../../database/db');
+const moment = require('moment');
 
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Currency = db.sequelize.models['Currency'];
+const Order = db.sequelize.models['order'];
 
 const PRECISION_QUANTITY = 8;
 
@@ -98,8 +100,17 @@ class Bot {
                 this._sortByProperty(lastTrades, 'id', 'ASC');
                 if (this._checkTradesSequence(lastTrades)) {
                     let quantityRatio = this._compareTradesQuantity(lastTrades, parseInt(period / 2));
-                    if (quantityRatio >= ratioToBuy) {
-                        this.bb.log.info('Signal to do something', lastTrades);
+                    if (quantityRatio >= ratioToBuy || true) {
+                        let prices = await this.bb.api.prices();
+                        let price = prices[symbol];
+                        let order = {
+                            price: price,
+                            time: moment().unix() * 1000,
+                            quantity: currency.sum,
+                            takeProfit: price * (1 + params['sellHigh'] / 100),
+                            stopLoss: price * (1 - params['sellLow'] / 100)
+                        };
+                        Order.create(order);
                     }
                 } else {
                     this.bb.log.error({
