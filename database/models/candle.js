@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
         quoteAssetVolume: DataTypes.DECIMAL,
         baseAssetVolume: DataTypes.DECIMAL,
         trades: DataTypes.INTEGER,
-        symbol: DataTypes.STRING
+        symbol: DataTypes.STRING,
+        timeFormat: DataTypes.STRING
     }, {
         tableName: 'candles',
     });

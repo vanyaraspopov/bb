@@ -86,6 +86,7 @@ class DataCollector {
                     }).then(count => {
                         if (count === 0) {
                             candle.symbol = symbol;
+                            candle.timeFormat = moment(candle.openTime).utc().format(this.bb.config.moment.format);
                             return Candle.create(candle);
                         }
                     }).catch(error => {
