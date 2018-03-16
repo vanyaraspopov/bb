@@ -92,7 +92,7 @@ class Bot {
                 let symbol = currency.quot + currency.base;
                 let params = JSON.parse(currency.params);
                 let period = this.config.period;
-                let ratioToBuy = params['buy'];
+                let ratioToBuy = Number(params['buy']);
                 let lastTrades = await AggTrade.findAll({
                     limit: period,
                     order: [['id', 'DESC']],
@@ -101,7 +101,7 @@ class Bot {
                 this._sortByProperty(lastTrades, 'id', 'ASC');
                 if (this._checkTradesSequence(lastTrades)) {
                     let quantityRatio = this._compareTradesQuantity(lastTrades, parseInt(period / 2));
-                    if (quantityRatio >= ratioToBuy || true) {
+                    if (quantityRatio >= ratioToBuy) {
                         let prices = await this.bb.api.prices();
                         let price = prices[symbol];
                         let time = moment();
