@@ -4,7 +4,8 @@ module.exports = (sequelize, DataTypes) => {
         symbol: DataTypes.STRING,
         timeStart: DataTypes.BIGINT,
         timeEnd: DataTypes.BIGINT,
-        quantity: DataTypes.DECIMAL
+        quantity: DataTypes.DECIMAL,
+        timeFormat: DataTypes.STRING
     }, {
         tableName: 'agg_trades',
     });

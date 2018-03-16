@@ -124,7 +124,8 @@ class DataCollector {
                         symbol: symbol,
                         timeStart: prevMinuteStart_msts,
                         timeEnd: prevMinuteEnd_msts,
-                        quantity: quantity.toFixed(this.config.quantityPrecision)
+                        quantity: quantity.toFixed(this.config.quantityPrecision),
+                        timeFormat: moment(prevMinuteStart).utc().format(this.bb.config.moment.format)
                     })
                 }
             } catch (error) {

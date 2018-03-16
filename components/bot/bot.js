@@ -9,8 +9,7 @@ const Order = db.sequelize.models['order'];
 const PRECISION_QUANTITY = 8;
 
 let config = {
-    period: 30,
-    timeFormat: 'YYYYMMDDHHmm'
+    period: 30
 };
 
 class Bot {
@@ -108,7 +107,7 @@ class Bot {
                         let order = {
                             price: price,
                             time: moment(time).unix() * 1000,
-                            timeFormat: moment(time).utc().format(this.config.timeFormat),
+                            timeFormat: moment(time).utc().format(this.bb.config.moment.format),
                             quantity: currency.sum,
                             takeProfit: price * (1 + params['sellHigh'] / 100),
                             stopLoss: price * (1 - params['sellLow'] / 100),

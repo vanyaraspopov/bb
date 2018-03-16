@@ -10,6 +10,9 @@
     "database": "<database>",
     "storage": "./path/to/database"
   },
+  "moment": {
+    "format": "YYYYMMDDHHmm"
+  },
   "pm2": {
     "modules": {
       "bb.data-collector": "Сбор данных",
