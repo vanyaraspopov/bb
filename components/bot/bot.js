@@ -9,7 +9,8 @@ const Order = db.sequelize.models['order'];
 const PRECISION_QUANTITY = 8;
 
 let config = {
-    period: 30
+    period: 30,
+    timeFormat: 'YYYYMMDDHHmm'
 };
 
 class Bot {
@@ -103,12 +104,15 @@ class Bot {
                     if (quantityRatio >= ratioToBuy || true) {
                         let prices = await this.bb.api.prices();
                         let price = prices[symbol];
+                        let time = moment();
                         let order = {
                             price: price,
-                            time: moment().unix() * 1000,
+                            time: moment(time).unix() * 1000,
+                            timeFormat: moment(time).utc().format(this.config.timeFormat),
                             quantity: currency.sum,
                             takeProfit: price * (1 + params['sellHigh'] / 100),
-                            stopLoss: price * (1 - params['sellLow'] / 100)
+                            stopLoss: price * (1 - params['sellLow'] / 100),
+                            symbol: symbol
                         };
                         Order.create(order);
                     }

@@ -5,7 +5,9 @@ module.exports = (sequelize, DataTypes) => {
         quantity: DataTypes.DECIMAL,
         takeProfit: DataTypes.DECIMAL,
         stopLoss: DataTypes.DECIMAL,
-        time: DataTypes.BIGINT
+        time: DataTypes.BIGINT,
+        symbol: DataTypes.STRING,
+        timeFormat: DataTypes.STRING
     }, {});
     order.associate = function (models) {
         // associations can be defined here
