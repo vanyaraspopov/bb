@@ -7,7 +7,7 @@ const LOG_LEVEL_ERROR = 'error';
 const LOG_LEVEL_INFO = 'info';
 
 const logger = winston.createLogger({
-    level: LOG_LEVEL_INFO,
+    level: LOG_LEVEL_ERROR,
     format: winston.format.simple(),
     transports: [
         //
@@ -15,8 +15,7 @@ const logger = winston.createLogger({
         // - Write all logs error (and below) to `error.log`.
         //
         new winston.transports.Console(),
-        new winston.transports.File({filename: 'error.log', level: LOG_LEVEL_ERROR}),
-        new winston.transports.File({filename: 'info.log', level: LOG_LEVEL_INFO})
+        new winston.transports.File({filename: 'error.log', level: LOG_LEVEL_ERROR})
     ]
 });
 
