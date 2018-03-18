@@ -1,5 +1,4 @@
 const db = require('../../database/db');
-const math = require('mathjs');
 const moment = require('moment');
 
 //  Models
@@ -133,7 +132,7 @@ class DataCollector {
     async collectCandles(gettingCandlesInterval) {
         let time = moment();
 
-        let minutes = math.round(gettingCandlesInterval / 60 / 1000);
+        let minutes = Math.round(gettingCandlesInterval / 60 / 1000) * 5;
         let lastMinutes = [];
         for (let i = 0; i < minutes; i++) {
             let prevMinute = moment(time).subtract(i + 1, 'minutes');
