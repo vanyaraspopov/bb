@@ -32,6 +32,6 @@ let bb = {
 };
 
 bb.components.dataCollector = new DataCollector(bb);
-bb.components.bot = new Trader(bb);
+bb.components.trader = new Trader(bb);
 
 module.exports = bb;

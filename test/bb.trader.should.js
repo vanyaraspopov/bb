@@ -2,7 +2,7 @@ const assert = require('chai').assert;
 const expect = require('chai').expect;
 
 const bb = require('../binance-bot');
-const trader = bb.components.bot;
+const trader = bb.components.trader;
 
 describe('bb.trader', () => {
 
