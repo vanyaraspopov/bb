@@ -87,7 +87,7 @@ class Trader {
      * @private
      */
     async _getLastTrades(symbol, period) {
-        let timeStartMin = moment().subtract(period + 1, 'minutes');
+        let timeStartMin = moment().subtract(period + 2, 'minutes');
         let lastTrades = await AggTrade.findAll({
             limit: period,
             order: [['timeStart', 'DESC']],
