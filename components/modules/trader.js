@@ -43,26 +43,6 @@ class Trader {
     }
 
     /**
-     * Check if sequence of trades is continuous
-     * @param {Array} trades List of last trades
-     * @return {boolean}
-     */
-    _checkTradesSequence(trades) {
-        let result = true;
-        let prevTimeEnd;
-        for (let trade of trades) {
-            if (!result) break;
-            if (prevTimeEnd === undefined) {
-                prevTimeEnd = trade.timeEnd;
-                continue;
-            }
-            result &= (trade.timeStart - prevTimeEnd) === 1;
-            prevTimeEnd = trade.timeEnd;
-        }
-        return result;
-    }
-
-    /**
      * Compares trades quantities of two last periods
      * @param {Array} trades Last trades data
      * @return {Number}
@@ -157,7 +137,7 @@ class Trader {
                 let period = this.config.period;
                 let ratioToBuy = Number(params['buy']);
                 let lastTrades = await this._getLastTrades(symbol, period);
-                if (this._checkTradesSequence(lastTrades)) {
+                if (AggTrade.checkTradesSequence(lastTrades)) {
                     let quantityRatio = this._compareTradesQuantity(lastTrades);
                     if (quantityRatio >= ratioToBuy) {
                         let prices = await this.bb.api.prices();

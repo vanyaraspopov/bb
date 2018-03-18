@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-    var AggTrade = sequelize.define('AggTrade', {
+    let AggTrade = sequelize.define('AggTrade', {
         symbol: DataTypes.STRING,
         timeStart: DataTypes.BIGINT,
         timeEnd: DataTypes.BIGINT,
@@ -12,5 +12,30 @@ module.exports = (sequelize, DataTypes) => {
     AggTrade.associate = function (models) {
         // associations can be defined here
     };
+
+    /**
+     * Check if sequence of trades is continuous
+     * @param {Array} trades List of trades
+     * @return {boolean}
+     */
+    AggTrade.checkTradesSequence = function(trades) {
+        if (trades.length === 0) {
+            return false;
+        }
+
+        let isCorrect = true;
+        let prevTrade = null;
+        for (let trade of trades) {
+            if (!isCorrect) break;
+            if (prevTrade === null) {
+                prevTrade = trade;
+                continue;
+            }
+            isCorrect = isCorrect && ((trade.timeStart - prevTrade.timeEnd) === 1);
+            prevTrade = trade;
+        }
+        return isCorrect;
+    };
+
     return AggTrade;
 };
