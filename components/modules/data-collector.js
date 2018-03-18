@@ -6,17 +6,12 @@ const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
 const Currency = db.sequelize.models['Currency'];
 
-let config = {
-    period: 30,
-    quantityPrecision: 8,
-};
+const QUANTITY_PRECISION = 8;
 
 class DataCollector {
 
     constructor(bb) {
         this.bb = bb;
-        this.config = config;
-
         this._symbols = undefined;
     }
 
@@ -56,7 +51,7 @@ class DataCollector {
         if (count === 0) {
             let timeEnd = moment(timeStart).add(1, 'minutes').unix() * 1000 - 1;
             let timeFormat = moment(timeStart).utc().format(this.bb.config.moment.format);
-            quantity = Number(quantity.toFixed(this.config.quantityPrecision));
+            quantity = Number(quantity.toFixed(QUANTITY_PRECISION));
             return AggTrade.create({
                 symbol,
                 timeStart,
@@ -129,10 +124,10 @@ class DataCollector {
         return this._symbols;
     }
 
-    async collectCandles(gettingCandlesInterval) {
+    async collectCandles(interval) {
         let time = moment();
 
-        let minutes = Math.round(gettingCandlesInterval / 60 / 1000) * 5;
+        let minutes = Math.round(interval / 60 / 1000) * 5;
         let lastMinutes = [];
         for (let i = 0; i < minutes; i++) {
             let prevMinute = moment(time).subtract(i + 1, 'minutes');
@@ -176,8 +171,8 @@ class DataCollector {
 
     }
 
-    async collectAggTrades() {
-        let period = this.config.period;
+    async collectAggTrades(interval) {
+        let period = interval * 30;
         let time = moment().utc();
         let currentMinuteStart = moment(time).startOf('minute');
         let periodStart = moment(currentMinuteStart).subtract(period, 'minutes');
@@ -201,8 +196,8 @@ class DataCollector {
     }
 
     run() {
-        let collectDataPeriod = 60 * 1000;  //  ms
-        setInterval(() => this.collectAggTrades(), collectDataPeriod);
+        let gettingAggTradesInterval = 60 * 1000;  //  ms
+        setInterval(() => this.collectAggTrades(gettingAggTradesInterval), gettingAggTradesInterval);
         this.collectAggTrades().catch(err => this.bb.log.error(err));
 
         let gettingCandlesInterval = 5 * 60 * 1000;
