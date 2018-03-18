@@ -42,23 +42,35 @@ class Bot {
     /**
      * Compares trades quantities of two last periods
      * @param {Array} trades Last trades data
-     * @param {int} period Length of each period, min
      * @return {Number}
      */
-    _compareTradesQuantity(trades, period) {
-        let lastPeriod = trades;
-        let firstPeriod = lastPeriod.splice(0, period);
+    _compareTradesQuantity(trades) {
+        if (trades.length === 0) {
+            throw new Error("Array of trades shouldn't be empty");
+        }
 
         let firstPeriodQuantity = 0;
-        for (let trade of firstPeriod) {
-            firstPeriodQuantity += trade.quantity
-        }
-        firstPeriodQuantity = firstPeriodQuantity.toFixed(PRECISION_QUANTITY);
-
         let secondPeriodQuantity = 0;
-        for (let trade of lastPeriod) {
-            secondPeriodQuantity += trade.quantity
+
+        let isOdd = trades.length % 2 === 1;
+        if (isOdd) {
+            let middle = Math.floor(trades.length / 2);
+            firstPeriodQuantity += trades[middle].quantity / 2;
+            secondPeriodQuantity += trades[middle].quantity / 2;
         }
+
+        let firstHalfLength = Math.floor(trades.length / 2);
+        let secondHalfStart = Math.ceil(trades.length / 2);
+        for (let i = 0; i < trades.length; i++) {
+            if (i < firstHalfLength) {
+                firstPeriodQuantity += trades[i].quantity;
+            }
+            if (i >= secondHalfStart) {
+                secondPeriodQuantity += trades[i].quantity;
+            }
+        }
+
+        firstPeriodQuantity = firstPeriodQuantity.toFixed(PRECISION_QUANTITY);
         secondPeriodQuantity = secondPeriodQuantity.toFixed(PRECISION_QUANTITY);
 
         return secondPeriodQuantity / firstPeriodQuantity;
