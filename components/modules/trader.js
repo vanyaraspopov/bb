@@ -13,7 +13,7 @@ let config = {
     period: 30
 };
 
-class Bot {
+class Trader {
 
     constructor(bb) {
         this.bb = bb;
@@ -188,4 +188,4 @@ class Bot {
 
 }
 
-module.exports = Bot;
+module.exports = Trader;

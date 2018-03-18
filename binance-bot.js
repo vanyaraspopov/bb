@@ -4,8 +4,8 @@ const db = require('./database/db');
 const logger = require('./components/logger/logger');
 
 //  Classes
-const Bot = require('./components/bot/bot');
-const DataCollector = require('./components/bot/data-collector');
+const Trader = require('./components/modules/trader');
+const DataCollector = require('./components/modules/data-collector');
 
 let bb = {
     config,
@@ -32,6 +32,6 @@ let bb = {
 };
 
 bb.components.dataCollector = new DataCollector(bb);
-bb.components.bot = new Bot(bb);
+bb.components.bot = new Trader(bb);
 
 module.exports = bb;
