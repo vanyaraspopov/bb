@@ -1,4 +1,5 @@
 const db = require('../../database/db');
+const Op = db.Sequelize.Op;
 const moment = require('moment');
 
 //  Models
@@ -17,6 +18,28 @@ class Bot {
     constructor(bb) {
         this.bb = bb;
         this.config = config;
+    }
+
+    /**
+     * Creates buy order
+     * @param symbol
+     * @param price
+     * @param quantity
+     * @returns {Promise}
+     * @private
+     */
+    _buy(symbol, price, quantity) {
+        let time = moment();
+        let order = {
+            price: price,
+            time: moment(time).unix() * 1000,
+            timeFormat: moment(time).utc().format(this.bb.config.moment.format),
+            quantity: quantity,
+            takeProfit: price * (1 + params['sellHigh'] / 100),
+            stopLoss: price * (1 - params['sellLow'] / 100),
+            symbol: symbol
+        };
+        return Order.create(order);
     }
 
     /**
@@ -77,6 +100,35 @@ class Bot {
     }
 
     /**
+     * Returns last trades
+     * @param {string} symbol
+     * @param {int} period in minutes
+     * @returns {Array}
+     * @private
+     */
+    async _getLastTrades(symbol, period) {
+        let timeStartMin = moment().subtract(period + 1, 'minutes');
+        let lastTrades = await AggTrade.findAll({
+            limit: period,
+            order: [['timeStart', 'DESC']],
+            where: {
+                symbol: symbol,
+                timeStart: {[Op.gte]: timeStartMin.unix() * 1000}
+            }
+        });
+        if (lastTrades.length < period) {
+            throw {
+                message: "Data of last trades is missing.",
+                symbol,
+                period,
+                timeStartMin: timeStartMin.utc().format(this.bb.config.moment.format)
+            };
+        }
+        this._sortByProperty(lastTrades, 'timeStart', 'ASC');
+        return lastTrades;
+    }
+
+    /**
      * Sort array of objects
      * @param {Array} array of objects with property "key"
      * @param {string} property Name of property to sort by
@@ -104,28 +156,13 @@ class Bot {
                 let params = JSON.parse(currency.params);
                 let period = this.config.period;
                 let ratioToBuy = Number(params['buy']);
-                let lastTrades = await AggTrade.findAll({
-                    limit: period,
-                    order: [['id', 'DESC']],
-                    where: {symbol: symbol}
-                });
-                this._sortByProperty(lastTrades, 'id', 'ASC');
+                let lastTrades = await this._getLastTrades(symbol, period);
                 if (this._checkTradesSequence(lastTrades)) {
-                    let quantityRatio = this._compareTradesQuantity(lastTrades, parseInt(period / 2));
+                    let quantityRatio = this._compareTradesQuantity(lastTrades);
                     if (quantityRatio >= ratioToBuy) {
                         let prices = await this.bb.api.prices();
                         let price = prices[symbol];
-                        let time = moment();
-                        let order = {
-                            price: price,
-                            time: moment(time).unix() * 1000,
-                            timeFormat: moment(time).utc().format(this.bb.config.moment.format),
-                            quantity: currency.sum,
-                            takeProfit: price * (1 + params['sellHigh'] / 100),
-                            stopLoss: price * (1 - params['sellLow'] / 100),
-                            symbol: symbol
-                        };
-                        Order.create(order);
+                        await this._buy(symbol, price, currency.sum);
                     }
                 } else {
                     this.bb.log.error({

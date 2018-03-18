@@ -66,6 +66,15 @@ describe('bb.trader', () => {
             }, Error, "Array of trades shouldn't be empty");
         });
 
-    })
+        it('should return infinity', () => {
+            let trades = [
+                { quantity: 0 },
+                { quantity: 1 }
+            ];
+            let result = trader._compareTradesQuantity(trades);
+            expect(result).to.equal(Number.POSITIVE_INFINITY);
+        });
+
+    });
 
 });
