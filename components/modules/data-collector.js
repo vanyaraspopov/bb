@@ -8,6 +8,7 @@ const Candle = db.sequelize.models['Candle'];
 const Currency = db.sequelize.models['Currency'];
 
 let config = {
+    period: 30,
     quantityPrecision: 8,
 };
 
@@ -20,6 +21,13 @@ class DataCollector {
         this._symbols = undefined;
     }
 
+    /**
+     * Makes request through API and returns trades aggregated
+     * @param symbol
+     * @param startTime Unix timestamp, us
+     * @param endTime Unix timestamp, us
+     * @returns {Promise<Array>}
+     */
     async getAggTrades(symbol, startTime, endTime) {
         let aggTrades = [];
         try {
@@ -32,6 +40,75 @@ class DataCollector {
             this.bb.log.error(error);
         }
         return aggTrades;
+    }
+
+    /**
+     * Creates new AggTrade record if not exists
+     * @param {string} symbol
+     * @param {int} timeStart
+     * @param {Number} quantity
+     * @returns {Promise<void>}
+     * @private
+     */
+    async _createAggTrade(symbol, timeStart, quantity) {
+        let count = await AggTrade.count({
+            where: {symbol, timeStart}
+        });
+        if (count === 0) {
+            let timeEnd = moment(timeStart).add(1, 'minutes').unix() * 1000 - 1;
+            let timeFormat = moment(timeStart).utc().format(this.bb.config.moment.format);
+            quantity = Number(quantity.toFixed(this.config.quantityPrecision));
+            return AggTrade.create({
+                symbol,
+                timeStart,
+                timeEnd,
+                quantity,
+                timeFormat
+            });
+        }
+    }
+
+    /**
+     * Returns an empty map: timestamp => quantity
+     * @param timeStart
+     * @param timeEnd
+     * @returns {Object}
+     * @private
+     */
+    static _getEmptyQuantitiesByMinute(timeStart, timeEnd) {
+        let quantities = {};
+        let start = moment(timeStart).utc();
+        let end = moment(timeEnd).utc();
+        if (start.unix() > end.unix()) {
+            let temp = start;
+            start = end;
+            end = temp;
+        }
+        let current = moment(start);
+        while (current.unix() <= end.unix()) {
+            quantities[current.unix() * 1000] = 0;
+            current.add(1, 'minutes');
+        }
+        return quantities;
+    }
+
+    /**
+     * Returns map filled with quantities: timestamp => quantity
+     * @param {Object} quantities Empty map
+     * @param {Array} trades
+     * @returns {Object}
+     * @private
+     */
+    static _fillQuantities(quantities, trades) {
+        for (let trade of trades) {
+            let minute = moment(trade.timestamp).utc();
+            let ts = moment(minute).startOf('minute').unix() * 1000;
+            if (quantities[ts] === undefined) {
+                quantities[ts] = 0;
+            }
+            quantities[ts] += Number(trade.quantity);
+        }
+        return quantities;
     }
 
     async getSymbols() {
@@ -100,34 +177,23 @@ class DataCollector {
 
     }
 
-    async collectData() {
-        let time = moment();
-        let prevMinuteStart = moment(time).startOf('minute').subtract(1, 'minutes');
-        let prevMinuteEnd = moment(time).startOf('minute');
+    async collectAggTrades() {
+        let period = this.config.period;
+        let time = moment().utc();
+        let currentMinuteStart = moment(time).startOf('minute');
+        let periodStart = moment(currentMinuteStart).subtract(period, 'minutes');
 
-        //  millisecond timestamps
-        let prevMinuteStart_msts = prevMinuteStart.unix() * 1000;
-        let prevMinuteEnd_msts = prevMinuteEnd.unix() * 1000 - 1;
-
-        for (let symbol of await this.getSymbols()) {
+        let startTime = periodStart.unix() * 1000;
+        let endTime = currentMinuteStart.unix() * 1000 - 1;
+        let symbols = await this.getSymbols();
+        for (let symbol of symbols) {
             try {
-                let count = await AggTrade.count({
-                    where: {
-                        symbol: symbol,
-                        timeStart: prevMinuteStart_msts,
-                        timeEnd: prevMinuteEnd_msts
-                    }
-                });
-                if (count === 0) {
-                    let aggTrades = await this.getAggTrades(symbol, prevMinuteStart_msts, prevMinuteEnd_msts);
-                    let quantity = aggTrades.reduce((sum, trade) => sum + Number(trade.quantity), 0);
-                    AggTrade.create({
-                        symbol: symbol,
-                        timeStart: prevMinuteStart_msts,
-                        timeEnd: prevMinuteEnd_msts,
-                        quantity: quantity.toFixed(this.config.quantityPrecision),
-                        timeFormat: moment(prevMinuteStart).utc().format(this.bb.config.moment.format)
-                    })
+                let aggTrades = await this.getAggTrades(symbol, startTime, endTime);
+                let quantities = DataCollector._getEmptyQuantitiesByMinute(startTime, endTime);
+                DataCollector._fillQuantities(quantities, aggTrades);
+                for (let timeStart in quantities) {
+                    let ts = Number(timeStart);
+                    await this._createAggTrade(symbol, ts, quantities[ts]);
                 }
             } catch (error) {
                 this.bb.log.error(error);
@@ -137,12 +203,12 @@ class DataCollector {
 
     run() {
         let collectDataPeriod = 60 * 1000;  //  ms
-        let collectDataInterval = setInterval(() => this.collectData(), collectDataPeriod);
-        this.collectData();
+        setInterval(() => this.collectAggTrades(), collectDataPeriod);
+        this.collectAggTrades().catch(err => this.bb.log.error(err));
 
         let gettingCandlesInterval = 5 * 60 * 1000;
         setInterval(() => this.collectCandles(gettingCandlesInterval), gettingCandlesInterval);
-        this.collectCandles(gettingCandlesInterval);
+        this.collectCandles(gettingCandlesInterval).catch(err => this.bb.log.error(err));
     }
 }
 
