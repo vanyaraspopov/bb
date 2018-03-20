@@ -172,7 +172,7 @@ class DataCollector {
     }
 
     async collectAggTrades(interval) {
-        let period = interval * 30;
+        let period = Math.round(interval / 60 / 1000) * 30;
         let time = moment().utc();
         let currentMinuteStart = moment(time).startOf('minute');
         let periodStart = moment(currentMinuteStart).subtract(period, 'minutes');
