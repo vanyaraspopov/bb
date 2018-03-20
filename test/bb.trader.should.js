@@ -22,7 +22,7 @@ describe('bb.trader', () => {
                 { quantity: 2 },
                 { quantity: 2 }
             ];
-            let result = trader._compareTradesQuantity(trades);
+            let result = Trader._compareTradesQuantity(trades);
             expect(result).to.equal(11 / 6);
         });
 
@@ -39,7 +39,7 @@ describe('bb.trader', () => {
                 { quantity: 2 },
                 { quantity: 2 }
             ];
-            let result = trader._compareTradesQuantity(trades);
+            let result = Trader._compareTradesQuantity(trades);
             expect(result).to.equal(2);
         });
 
@@ -56,13 +56,13 @@ describe('bb.trader', () => {
                 { quantity: 1 },
                 { quantity: 1 }
             ];
-            let result = trader._compareTradesQuantity(trades);
+            let result = Trader._compareTradesQuantity(trades);
             expect(result).to.equal(0.5);
         });
 
         it('should throw an error on empty array', () => {
             assert.throws(() => {
-                trader._compareTradesQuantity([]);
+                Trader._compareTradesQuantity([]);
             }, Error, "Array of trades shouldn't be empty");
         });
 
@@ -71,7 +71,7 @@ describe('bb.trader', () => {
                 { quantity: 0 },
                 { quantity: 1 }
             ];
-            let result = trader._compareTradesQuantity(trades);
+            let result = Trader._compareTradesQuantity(trades);
             expect(result).to.equal(Number.POSITIVE_INFINITY);
         });
 

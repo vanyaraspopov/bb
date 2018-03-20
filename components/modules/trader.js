@@ -25,19 +25,21 @@ class Trader {
      * @param symbol
      * @param price
      * @param quantity
-     * @returns {Promise}
+     * @param takeProfit
+     * @param stopLoss
+     * @returns {order}
      * @private
      */
-    _buy(symbol, price, quantity) {
+    _buy(symbol, price, quantity, takeProfit, stopLoss) {
         let time = moment();
         let order = {
-            price: price,
+            price,
             time: moment(time).unix() * 1000,
             timeFormat: moment(time).utc().format(this.bb.config.moment.format),
-            quantity: quantity,
-            takeProfit: price * (1 + params['sellHigh'] / 100),
-            stopLoss: price * (1 - params['sellLow'] / 100),
-            symbol: symbol
+            quantity,
+            takeProfit,
+            stopLoss,
+            symbol
         };
         return Order.create(order);
     }
@@ -47,7 +49,7 @@ class Trader {
      * @param {Array} trades Last trades data
      * @return {Number}
      */
-    _compareTradesQuantity(trades) {
+    static _compareTradesQuantity(trades) {
         if (trades.length === 0) {
             throw new Error("Array of trades shouldn't be empty");
         }
@@ -138,11 +140,13 @@ class Trader {
                 let ratioToBuy = Number(params['buy']);
                 let lastTrades = await this._getLastTrades(symbol, period);
                 if (AggTrade.checkTradesSequence(lastTrades)) {
-                    let quantityRatio = this._compareTradesQuantity(lastTrades);
+                    let quantityRatio = Trader._compareTradesQuantity(lastTrades);
                     if (quantityRatio >= ratioToBuy) {
                         let prices = await this.bb.api.prices();
                         let price = prices[symbol];
-                        await this._buy(symbol, price, currency.sum);
+                        let takeProfit = price * (1 + params['sellHigh'] / 100);
+                        let stopLoss = price * (1 - params['sellLow'] / 100);
+                        await this._buy(symbol, price, currency.sum, takeProfit, stopLoss);
                     }
                 } else {
                     this.bb.log.error({
@@ -162,8 +166,8 @@ class Trader {
      */
     run() {
         let runPeriod = 60 * 1000;  //  ms
-        let runInterval = setInterval(() => this._work(), runPeriod);
-        this._work();
+        setInterval(() => this._work(), runPeriod);
+        this._work().catch(err => this.bb.log.error(err));
     }
 
 }
