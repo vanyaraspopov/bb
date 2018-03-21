@@ -4,6 +4,7 @@ const moment = require('moment');
 
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
+const Candle = db.sequelize.models['Candle'];
 const Currency = db.sequelize.models['Currency'];
 const Order = db.sequelize.models['order'];
 
@@ -45,6 +46,36 @@ class Trader {
     }
 
     /**
+     * Helper method for checking data
+     * @param symbol
+     * @returns {boolean}
+     * @private
+     */
+    _checks(symbol, trades, candles) {
+        let checksPassed = true;
+
+        checksPassed &= AggTrade.checkTradesSequence(trades);
+        if (!checksPassed) {
+            this.bb.log.error({
+                message: 'Last trades haven\'t pass checking',
+                symbol,
+                lastTrades: trades
+            });
+        }
+
+        checksPassed &= Candle.checkSequence(candles);
+        if (!checksPassed) {
+            this.bb.log.error({
+                message: 'Last candles haven\'t pass checking',
+                symbol,
+                lastTrades: trades
+            });
+        }
+
+        return checksPassed;
+    }
+
+    /**
      * Compares trades quantities of two last periods
      * @param {Array} trades Last trades data
      * @return {Number}
@@ -79,6 +110,69 @@ class Trader {
         secondPeriodQuantity = secondPeriodQuantity.toFixed(PRECISION_QUANTITY);
 
         return secondPeriodQuantity / firstPeriodQuantity;
+    }
+
+    /**
+     * Compares candles' close prices of second and first half.
+     * @param {Array} candles
+     * @returns {boolean} True if average close price of second half is greater than in a first half.
+     * @private
+     */
+    static _comparePrices(candles) {
+        if (candles.length === 0) {
+            return false;
+        }
+        let prices = candles.map(candle => candle.close);
+
+        let firstPeriodPrices = [];
+        let secondPeriodPrices = [];
+
+        let odd = (prices.length % 2) === 1;
+        let middle = Math.floor(prices.length / 2);
+        for (let i = 0; i < prices.length; i++) {
+            let price = prices[i];
+            if (i < middle || (odd && i === middle)) {
+                firstPeriodPrices.push(price);
+            }
+            if (i >= middle) {
+                secondPeriodPrices.push(price);
+            }
+        }
+
+        let average = arr => arr.reduce((p, c) => p + c, 0) / arr.length;
+        let avgFirst = average(firstPeriodPrices);
+        let avgSecond = average(secondPeriodPrices);
+
+        return avgSecond > avgFirst;
+    }
+
+    /**
+     * Returns last candles
+     * @param symbol
+     * @param period
+     * @returns {Promise<Array<Model>>}
+     * @private
+     */
+    async _getLastCandles(symbol, period) {
+        let openTimeMin = moment().subtract(period + 2, 'minutes');
+        let candles = await Candle.findAll({
+            limit: period,
+            order: [['openTime', 'DESC']],
+            where: {
+                symbol,
+                openTime: {[Op.gte]: openTimeMin.unix() * 1000}
+            }
+        });
+        if (candles.length < period) {
+            throw {
+                message: "Data of last candles is missing.",
+                symbol,
+                period,
+                openTimeMin: openTimeMin.utc().format(this.bb.config.moment.format)
+            };
+        }
+        this._sortByProperty(candles, 'openTime', 'ASC');
+        return candles;
     }
 
     /**
@@ -131,33 +225,29 @@ class Trader {
     }
 
     async _work() {
-        try {
-            let activeCurrencies = await Currency.findAll({where: {active: 1}});
-            for (let currency of activeCurrencies) {
+        let activeCurrencies = await Currency.findAll({where: {active: 1}});
+        for (let currency of activeCurrencies) {
+            try {
                 let symbol = currency.quot + currency.base;
                 let params = JSON.parse(currency.params);
                 let period = this.config.period;
                 let ratioToBuy = Number(params['buy']);
                 let lastTrades = await this._getLastTrades(symbol, period);
-                if (AggTrade.checkTradesSequence(lastTrades)) {
+                let lastCandles = await this._getLastCandles(symbol, period);
+                if (this._checks(symbol, lastTrades, lastCandles)) {
                     let quantityRatio = Trader._compareTradesQuantity(lastTrades);
-                    if (quantityRatio >= ratioToBuy) {
+                    let priceIncreasing = Trader._comparePrices(lastCandles);
+                    if (quantityRatio >= ratioToBuy && priceIncreasing) {
                         let prices = await this.bb.api.prices();
                         let price = prices[symbol];
                         let takeProfit = price * (1 + params['sellHigh'] / 100);
                         let stopLoss = price * (1 - params['sellLow'] / 100);
                         await this._buy(symbol, price, currency.sum, takeProfit, stopLoss);
                     }
-                } else {
-                    this.bb.log.error({
-                        message: 'Last trades haven\'t pass checking',
-                        symbol,
-                        lastTrades
-                    });
                 }
+            } catch (error) {
+                this.bb.log.error(error);
             }
-        } catch (error) {
-            this.bb.log.error(error);
         }
     }
 

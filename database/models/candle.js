@@ -19,5 +19,30 @@ module.exports = (sequelize, DataTypes) => {
     Candle.associate = function (models) {
         // associations can be defined here
     };
+
+    /**
+     * Check if sequence of candles is continuous
+     * @param {Array} candles List of candles
+     * @return {boolean}
+     */
+    Candle.checkSequence = function(candles) {
+        if (candles.length === 0) {
+            return false;
+        }
+
+        let isCorrect = true;
+        let prevCandle = null;
+        for (let candle of candles) {
+            if (!isCorrect) break;
+            if (prevCandle === null) {
+                prevCandle = candle;
+                continue;
+            }
+            isCorrect = isCorrect && ((candle.openTime - prevCandle.closeTime) === 1);
+            prevCandle = candle;
+        }
+        return isCorrect;
+    };
+
     return Candle;
 };

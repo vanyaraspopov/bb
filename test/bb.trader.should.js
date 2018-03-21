@@ -1,6 +1,8 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 
+const Trader = require('../components/modules/trader');
+
 const bb = require('../binance-bot');
 const trader = bb.components.trader;
 
@@ -73,6 +75,107 @@ describe('bb.trader', () => {
             ];
             let result = Trader._compareTradesQuantity(trades);
             expect(result).to.equal(Number.POSITIVE_INFINITY);
+        });
+
+    });
+
+    describe('_comparePrices', () => {
+
+        it('should work correct', () => {
+            let candles = [
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(true);
+        });
+
+        it('should work correct 2', () => {
+            let candles = [
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct 3', () => {
+            let candles = [
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct with odd count of elements', () => {
+            let candles = [
+                { close: 2 },
+                { close: 100 },
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct with odd count of elements 2', () => {
+            let candles = [
+                { close: 2 },
+                { close: 100 },
+                { close: 1 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct with odd count of elements 3', () => {
+            let candles = [
+                { close: 1 },
+                { close: 100 },
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(true);
+        });
+
+        it('return false on empty array', () => {
+            let result = Trader._comparePrices([]);
+            expect(result).to.equal(false);
+        });
+
+        it('return false on 1 element', () => {
+            let candles = [
+                { close: 2 }
+            ];
+            let result = Trader._comparePrices(candles);
+            expect(result).to.equal(false);
         });
 
     });

@@ -200,7 +200,7 @@ class DataCollector {
         setInterval(() => this.collectAggTrades(gettingAggTradesInterval), gettingAggTradesInterval);
         this.collectAggTrades().catch(err => this.bb.log.error(err));
 
-        let gettingCandlesInterval = 5 * 60 * 1000;
+        let gettingCandlesInterval = 60 * 1000;
         setInterval(() => this.collectCandles(gettingCandlesInterval), gettingCandlesInterval);
         this.collectCandles(gettingCandlesInterval).catch(err => this.bb.log.error(err));
     }
