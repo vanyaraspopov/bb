@@ -5,6 +5,7 @@ const pm2 = require('pm2');
 
 //  Models
 const Currency = db.sequelize.models['Currency'];
+const User = db.sequelize.models['User'];
 
 module.exports = (app) => {
 
@@ -120,6 +121,37 @@ module.exports = (app) => {
             });
     });
 
+    app.get('/', loadUser, (request, response) => {
+        response.redirect('/index.html');
+    });
+
+    app.get('/index.html', loadUser);
+
+    app.post('/login.html', (request, response) => {
+        let {username, password} = request.body;
+        User.findOne({where: {username}})
+            .then(user => {
+                return new Promise((resolve, reject) => {
+                    if (user.password === password) {
+                        request.session.user = {
+                            id: user.id,
+                            username: user.username
+                        };
+                        response.redirect('/index.html');
+                        resolve();
+                    } else {
+                        reject('invalid password');
+                    }
+                });
+            })
+            .catch(err => response.redirect('/login.html?success=0'));
+    });
+
+    app.get('/logout', (request, response) => {
+        delete request.session.user;
+        response.redirect('/login.html');
+    })
+
 };
 
 function connectToPm2ThenDo(action, errback) {
@@ -130,4 +162,12 @@ function connectToPm2ThenDo(action, errback) {
             action();
         }
     });
+}
+
+function loadUser(request, response, next) {
+    if (request.session.user) {
+        next();
+    } else {
+        response.redirect('/login.html');
+    }
 }
