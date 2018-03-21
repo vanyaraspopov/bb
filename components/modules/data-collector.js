@@ -63,30 +63,6 @@ class DataCollector {
     }
 
     /**
-     * Returns an empty map: timestamp => quantity
-     * @param timeStart
-     * @param timeEnd
-     * @returns {Object}
-     * @private
-     */
-    static _getEmptyQuantitiesByMinute(timeStart, timeEnd) {
-        let quantities = {};
-        let start = moment(timeStart).utc();
-        let end = moment(timeEnd).utc();
-        if (start.unix() > end.unix()) {
-            let temp = start;
-            start = end;
-            end = temp;
-        }
-        let current = moment(start);
-        while (current.unix() <= end.unix()) {
-            quantities[current.unix() * 1000] = 0;
-            current.add(1, 'minutes');
-        }
-        return quantities;
-    }
-
-    /**
      * Returns map filled with quantities: timestamp => quantity
      * @param {Object} quantities Empty map
      * @param {Array} trades
@@ -173,21 +149,23 @@ class DataCollector {
 
     async collectAggTrades(interval) {
         let period = Math.round(interval / 60 / 1000) * 30;
-        let time = moment().utc();
-        let currentMinuteStart = moment(time).startOf('minute');
-        let periodStart = moment(currentMinuteStart).subtract(period, 'minutes');
+        let time = moment().startOf('minute').utc();
+        let lastMinutesMap = this.bb.utils.lastMinutesMap(period, time);
+        let borders = this.bb.utils.lastMinutesMapBorders(lastMinutesMap);
+        let startTime = Number(borders.start);
+        let endTime = Number(borders.end);
 
-        let startTime = periodStart.unix() * 1000;
-        let endTime = currentMinuteStart.unix() * 1000 - 1;
         let symbols = await this.getSymbols();
         for (let symbol of symbols) {
             try {
                 let aggTrades = await this.getAggTrades(symbol, startTime, endTime);
-                let quantities = DataCollector._getEmptyQuantitiesByMinute(startTime, endTime);
+                let quantities = this.bb.utils.lastMinutesMap(period, time, 0);
                 DataCollector._fillQuantities(quantities, aggTrades);
                 for (let timeStart in quantities) {
-                    let ts = Number(timeStart);
-                    await this._createAggTrade(symbol, ts, quantities[ts]);
+                    if (quantities.hasOwnProperty(timeStart)) {
+                        let ts = Number(timeStart);
+                        await this._createAggTrade(symbol, ts, quantities[ts]);
+                    }
                 }
             } catch (error) {
                 this.bb.log.error(error);
@@ -198,7 +176,7 @@ class DataCollector {
     run() {
         let gettingAggTradesInterval = 60 * 1000;  //  ms
         setInterval(() => this.collectAggTrades(gettingAggTradesInterval), gettingAggTradesInterval);
-        this.collectAggTrades().catch(err => this.bb.log.error(err));
+        this.collectAggTrades(gettingAggTradesInterval).catch(err => this.bb.log.error(err));
 
         let gettingCandlesInterval = 60 * 1000;
         setInterval(() => this.collectCandles(gettingCandlesInterval), gettingCandlesInterval);

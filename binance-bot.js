@@ -2,6 +2,7 @@ const api = require('./components/api/api');
 const config = require('./config/config.json');
 const db = require('./database/db');
 const logger = require('./components/logger/logger');
+const utils = require('./components/utils/utils');
 
 //  Classes
 const Trader = require('./components/modules/trader');
@@ -12,7 +13,8 @@ let bb = {
     components: {
         api,
         db,
-        logger
+        logger,
+        utils,
     },
 
     //  Aliases
@@ -27,6 +29,9 @@ let bb = {
     },
     get models() {
         return db.sequelize.models;
+    },
+    get utils() {
+        return this.components.utils;
     },
 
 };
