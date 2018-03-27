@@ -45,19 +45,24 @@ class DataCollector {
      * @private
      */
     async _createAggTrade(symbol, timeStart, quantity) {
-        let count = await AggTrade.count({
+        quantity = Number(quantity.toFixed(QUANTITY_PRECISION));
+        let trade = await AggTrade.findOne({
             where: {symbol, timeStart}
         });
-        if (count === 0) {
+        if (trade == null) {
             let timeEnd = moment(timeStart).add(1, 'minutes').unix() * 1000 - 1;
             let timeFormat = moment(timeStart).utc().format(this.bb.config.moment.format);
-            quantity = Number(quantity.toFixed(QUANTITY_PRECISION));
             return AggTrade.create({
                 symbol,
                 timeStart,
                 timeEnd,
                 quantity,
                 timeFormat
+            });
+        }
+        if (trade.quantity !== quantity) {
+            return trade.update({
+                quantity
             });
         }
     }

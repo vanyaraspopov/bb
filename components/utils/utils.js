@@ -36,7 +36,7 @@ module.exports = {
         let minutes = Object.keys(map).map(v => Number(v));
         return {
             start: minutes[0],
-            end: minutes[minutes.length - 1] - 1
+            end: minutes[minutes.length - 1] + 999
         };
     }
 
