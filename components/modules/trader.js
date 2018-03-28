@@ -205,6 +205,17 @@ class Trader {
     }
 
     /**
+     * Checks if all previous orders were closed
+     * @param symbol
+     * @returns {Promise<boolean>}
+     * @private
+     */
+    static async _previousOrdersClosed(symbol) {
+        let orders = await Order.findAll({where: {symbol, closed: 0}});
+        return orders.length === 0;
+    }
+
+    /**
      * Sort array of objects
      * @param {Array} array of objects with property "key"
      * @param {string} property Name of property to sort by
@@ -226,6 +237,7 @@ class Trader {
 
     async _work() {
         let activeCurrencies = await Currency.findAll({where: {active: 1}});
+        let prices = await this.bb.api.prices();
         for (let currency of activeCurrencies) {
             try {
                 let symbol = currency.quot + currency.base;
@@ -238,11 +250,12 @@ class Trader {
                     let quantityRatio = Trader._compareTradesQuantity(lastTrades);
                     let priceIncreasing = Trader._comparePrices(lastCandles);
                     if (quantityRatio >= ratioToBuy && priceIncreasing) {
-                        let prices = await this.bb.api.prices();
                         let price = prices[symbol];
                         let takeProfit = price * (1 + params['sellHigh'] / 100);
                         let stopLoss = price * (1 - params['sellLow'] / 100);
-                        await this._buy(symbol, price, currency.sum, takeProfit, stopLoss);
+                        if (await Trader._previousOrdersClosed(symbol)) {
+                            await this._buy(symbol, price, currency.sum, takeProfit, stopLoss);
+                        }
                     }
                 }
             } catch (error) {
