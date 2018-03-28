@@ -264,6 +264,21 @@ class Trader {
         }
     }
 
+    async _checkOpenedOrders() {
+        let orders = await Order.findAll({where: {closed: 0}});
+        let prices = await this.bb.api.prices();
+        for (let order of orders) {
+            let currentPrice = Number(prices[order.symbol]);
+            if (currentPrice >= order.takeProfit) {
+                order.update({success: true, closed: true})
+                    .catch(err => this.bb.log.error(err));
+            } else if (currentPrice <= order.stopLoss) {
+                order.update({success: false, closed: true})
+                    .catch(err => this.bb.log.error(err));
+            }
+        }
+    }
+
     /**
      * Main function
      */
@@ -271,6 +286,11 @@ class Trader {
         let runPeriod = 60 * 1000;  //  ms
         setInterval(() => this._work(), runPeriod);
         this._work().catch(err => this.bb.log.error(err));
+
+        let checkOpenedOrdersPeriod = 10 * 1000;
+        setInterval(() => this._checkOpenedOrders(), checkOpenedOrdersPeriod);
+        this._checkOpenedOrders().catch(err => this.bb.log.error(err));
+
     }
 
 }
