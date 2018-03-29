@@ -5,37 +5,45 @@ const pm2 = require('pm2');
 
 //  Models
 const Currency = db.sequelize.models['Currency'];
+const Module = db.sequelize.models['Module'];
+const Symb = db.sequelize.models['Symb'];
 const User = db.sequelize.models['User'];
 
 module.exports = (app) => {
 
     const API_URI = '/api';
 
+    /**
+     * Modules
+     */
     app.get(API_URI + "/modules", (request, response) => {
         connectToPm2ThenDo(
             () => {
-                pm2.list((err, processList) => {
-                    if (err) {
-                        response.send(err);
-                    }
-                    let processes = {};
-                    let modules = config['pm2']['modules'];
-                    for (let moduleName in modules) {
-                        if (modules.hasOwnProperty(moduleName)) {
-                            processes[moduleName] = {
-                                title: modules[moduleName],
-                                status: null
-                            };
-                        }
-                    }
-                    for (let p of processList) {
-                        if (processes.hasOwnProperty(p.name)) {
-                            processes[p.name].status = p.pm2_env.status;
-                        }
+                return Module
+                    .findAll()
+                    .then(modules => {
+                        pm2.list((err, processList) => {
+                            if (err) {
+                                response.send(err);
+                            }
+                            let processes = {};
+                            for (let m of modules) {
+                                processes[m.pm2_name] = {
+                                    title: m.title,
+                                    status: null
+                                };
+                            }
+                            for (let p of processList) {
+                                if (processes.hasOwnProperty(p.name)) {
+                                    processes[p.name].status = p.pm2_env.status;
+                                }
 
-                    }
-                    response.send(processes);
-                });
+                            }
+                            pm2.disconnect();
+                            response.send(processes);
+                        });
+                    })
+                    .catch(err => response.send(err));
             },
             err => response.send(err)
         );
@@ -73,6 +81,9 @@ module.exports = (app) => {
         );
     });
 
+    /**
+     * Currencies
+     */
     app.get(API_URI + '/currencies', (request, response) => {
         Currency
             .findAll()
@@ -121,6 +132,44 @@ module.exports = (app) => {
             });
     });
 
+    /**
+     * Symbols
+     */
+    app.get(API_URI + '/symbols', loadUser, (request, response) => {
+        Symb
+            .findAll()
+            .then(symbols => response.send(symbols))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.post(API_URI + '/symbols', (request, response) => {
+        let values = request.body;
+        Symb.create(values)
+            .then(symbol => response.send(symbol))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.delete(API_URI + '/symbols/:id', (request, response) => {
+        let id = request.params.id;
+        Symb
+            .findById(id)
+            .then(symbol => symbol.destroy())
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    /**
+     * Static
+     */
     app.get('/', loadUser, (request, response) => {
         response.redirect('/index.html');
     });
@@ -155,7 +204,7 @@ module.exports = (app) => {
 };
 
 function connectToPm2ThenDo(action, errback) {
-    pm2.connect(err => {
+    return pm2.connect(err => {
         if (err) {
             errback(err);
         } else {
