@@ -18,5 +18,13 @@ module.exports = (sequelize, DataTypes) => {
             as: 'symbol'
         });
     };
+
+    let paramsToString = function (mp) {
+        if (typeof(mp.params) === 'object') {
+            mp.params = JSON.stringify(mp.params);
+        }
+    };
+    ModuleParameters.hook('beforeValidate', paramsToString);
+
     return ModuleParameters;
 };

@@ -6,6 +6,7 @@ const pm2 = require('pm2');
 //  Models
 const Currency = db.sequelize.models['Currency'];
 const Module = db.sequelize.models['Module'];
+const ModuleParameters = db.sequelize.models['ModuleParameters'];
 const Symb = db.sequelize.models['Symb'];
 const User = db.sequelize.models['User'];
 
@@ -20,7 +21,14 @@ module.exports = (app) => {
         connectToPm2ThenDo(
             () => {
                 return Module
-                    .findAll()
+                    .findAll({
+                        include: [
+                            {
+                                association: 'params',
+                                include: ['symbol']
+                            }
+                        ]
+                    })
                     .then(modules => {
                         pm2.list((err, processList) => {
                             if (err) {
@@ -28,10 +36,8 @@ module.exports = (app) => {
                             }
                             let processes = {};
                             for (let m of modules) {
-                                processes[m.pm2_name] = {
-                                    title: m.title,
-                                    status: null
-                                };
+                                processes[m.pm2_name] = m;
+                                processes[m.pm2_name].status = null;
                             }
                             for (let p of processList) {
                                 if (processes.hasOwnProperty(p.name)) {
@@ -79,6 +85,59 @@ module.exports = (app) => {
             },
             err => response.send(err)
         );
+    });
+
+    app.get(API_URI + "/modules/params/:module_id", (request, response) => {
+        let module_id = request.params.module_id;
+        ModuleParameters
+            .findAll({where: module_id})
+            .then(mp => response.send(mp))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.post(API_URI + '/modules/params', (request, response) => {
+        let values = request.body;
+        ModuleParameters.create(values)
+            .then(mp => ModuleParameters.findOne({
+                where: { id: mp.id },
+                include: ['symbol']
+            }))
+            .then(mp => response.send(mp))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.put(API_URI + '/modules/params/:id', (request, response) => {
+        let id = request.params.id;
+        let values = request.body;
+        ModuleParameters
+            .findById(id)
+            .then(mp => {
+                mp = Object.assign(mp, values);
+                return mp.save();
+            })
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
+    app.delete(API_URI + '/modules/params/:id', (request, response) => {
+        let id = request.params.id;
+        ModuleParameters
+            .findById(id)
+            .then(mp => mp.destroy())
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
     });
 
     /**
