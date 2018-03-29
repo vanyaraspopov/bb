@@ -1,18 +1,23 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-    let Symbol = sequelize.define('Symbol', {
+    let Symb = sequelize.define('Symb', {
         quot: DataTypes.STRING,
         base: DataTypes.STRING
     }, {
         tableName: 'symbols',
+        getterMethods: {
+            symbol() {
+                return this.quot + this.base;
+            }
+        }
     });
-    Symbol.associate = function (models) {
-        // associations can be defined here
+
+    Symb.associate = function (models) {
+        models.Symb.hasMany(models.ModuleParameters, {
+            foreignKey: 'symbol_id',
+            as: 'params'
+        });
     };
 
-    Symbol.symbol = function (separator = '') {
-        return this.quot + separator + this.base;
-    };
-
-    return Symbol;
+    return Symb;
 };

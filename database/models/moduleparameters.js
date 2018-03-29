@@ -9,7 +9,14 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'module_parameters',
     });
     ModuleParameters.associate = function (models) {
-        // associations can be defined here
+        models.ModuleParameters.belongsTo(models.Module, {
+            foreignKey: 'module_id',
+            as: 'module'
+        });
+        models.ModuleParameters.belongsTo(models.Symb, {
+            foreignKey: 'symbol_id',
+            as: 'symbol'
+        });
     };
     return ModuleParameters;
 };
