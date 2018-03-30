@@ -70,7 +70,7 @@ class Scalper extends Trader {
                 if (Candle.checkSequence(lastCandles)) {
                     let subsidence = Number(params['subsidence'].value);
                     let avgPrice = Scalper.avgPrice(lastCandles);
-                    let lastPrice = prices[symbol];
+                    let lastPrice = Number(prices[symbol]);
                     let priceToBuy = avgPrice * (1 - subsidence / 100);
                     if (lastPrice < priceToBuy) {
                         let sum = Number(params['sum'].value);
