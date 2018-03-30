@@ -8,6 +8,7 @@ const Candle = db.sequelize.models['Candle'];
 const Order = db.sequelize.models['order'];
 
 const PRECISION_QUANTITY = 8;
+const PRECISION_PRICE = 8;
 
 let config = {
     period: 30
@@ -66,8 +67,8 @@ class Trader extends BBModule {
             time: moment(time).unix() * 1000,
             timeFormat: moment(time).utc().format(this.bb.config.moment.format),
             quantity,
-            takeProfit,
-            stopLoss,
+            takeProfit: takeProfit.toFixed(PRECISION_PRICE),
+            stopLoss: stopLoss.toFixed(PRECISION_PRICE),
             symbol
         };
         return Order.create(order);
