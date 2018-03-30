@@ -1,8 +1,6 @@
 const db = require('../../database/db');
 const moment = require('moment');
 
-const BBModule = require('./module');
-
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
@@ -10,6 +8,7 @@ const ModuleParameters = db.sequelize.models['ModuleParameters'];
 
 const QUANTITY_PRECISION = 8;
 
+const BBModule = require('./module');
 class DataCollector extends BBModule {
 
     constructor(bb) {

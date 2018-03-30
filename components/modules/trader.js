@@ -5,7 +5,6 @@ const moment = require('moment');
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
-const Currency = db.sequelize.models['Currency'];
 const Order = db.sequelize.models['order'];
 
 const PRECISION_QUANTITY = 8;
@@ -14,11 +13,41 @@ let config = {
     period: 30
 };
 
-class Trader {
+const BBModule = require('./module');
+class Trader extends BBModule {
 
     constructor(bb) {
-        this.bb = bb;
+        super(bb);
         this.config = config;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    get module() {
+        return {
+            id: 2,
+            title: 'Торговля',
+            pm2_name: 'bb.trader',
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    get tasks() {
+        return [
+            {
+                action: this._work,
+                interval: 60 * 1000,
+                title: 'Main trading strategy'
+            },
+            {
+                action: this._checkOpenedOrders,
+                interval: 10 * 1000,
+                title: 'Checking order status'
+            }
+        ];
     }
 
     /**
@@ -236,25 +265,28 @@ class Trader {
     }
 
     async _work() {
-        let activeCurrencies = await Currency.findAll({where: {active: 1}});
+        let moduleParams = await this.activeParams;
         let prices = await this.bb.api.prices();
-        for (let currency of activeCurrencies) {
+        for (let mp of moduleParams) {
             try {
-                let symbol = currency.quot + currency.base;
-                let params = JSON.parse(currency.params);
+                let symbol = mp.symbol.symbol;
                 let period = this.config.period;
-                let ratioToBuy = Number(params['buy']);
                 let lastTrades = await this._getLastTrades(symbol, period);
                 let lastCandles = await this._getLastCandles(symbol, period);
                 if (this._checks(symbol, lastTrades, lastCandles)) {
+                    let params = JSON.parse(mp.params);
+                    let ratioToBuy = Number(params['buy'].value);
+                    let sellHigh = Number(params['sellHigh'].value);
+                    let sellLow = Number(params['sellLow'].value);
+                    let sum = Number(params['sum'].value);
                     let quantityRatio = Trader._compareTradesQuantity(lastTrades);
                     let priceIncreasing = Trader._comparePrices(lastCandles);
                     if (quantityRatio >= ratioToBuy && priceIncreasing) {
                         let price = prices[symbol];
-                        let takeProfit = price * (1 + params['sellHigh'] / 100);
-                        let stopLoss = price * (1 - params['sellLow'] / 100);
+                        let takeProfit = price * (1 + sellHigh / 100);
+                        let stopLoss = price * (1 - sellLow / 100);
                         if (await Trader._previousOrdersClosed(symbol)) {
-                            await this._buy(symbol, price, currency.sum, takeProfit, stopLoss);
+                            await this._buy(symbol, price, sum, takeProfit, stopLoss);
                         }
                     }
                 }
@@ -278,21 +310,6 @@ class Trader {
             }
         }
     }
-
-    /**
-     * Main function
-     */
-    run() {
-        let runPeriod = 60 * 1000;  //  ms
-        setInterval(() => this._work(), runPeriod);
-        this._work().catch(err => this.bb.log.error(err));
-
-        let checkOpenedOrdersPeriod = 10 * 1000;
-        setInterval(() => this._checkOpenedOrders(), checkOpenedOrdersPeriod);
-        this._checkOpenedOrders().catch(err => this.bb.log.error(err));
-
-    }
-
 }
 
 module.exports = Trader;
