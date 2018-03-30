@@ -36,7 +36,7 @@ module.exports = (app) => {
                             }
                             let processes = {};
                             for (let m of modules) {
-                                processes[m.pm2_name] = m;
+                                processes[m.pm2_name] = m.dataValues;
                                 processes[m.pm2_name].status = null;
                             }
                             for (let p of processList) {
