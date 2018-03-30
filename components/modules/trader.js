@@ -58,9 +58,10 @@ class Trader extends BBModule {
      * @param quantity
      * @param takeProfit
      * @param stopLoss
+     * @param mark that points component creating an order
      * @returns {order}
      */
-    buy(symbol, price, quantity, takeProfit, stopLoss) {
+    buy(symbol, price, quantity, takeProfit, stopLoss, mark = 'trader') {
         let time = moment();
         let order = {
             price,
@@ -69,7 +70,8 @@ class Trader extends BBModule {
             quantity,
             takeProfit: takeProfit.toFixed(PRECISION_PRICE),
             stopLoss: stopLoss.toFixed(PRECISION_PRICE),
-            symbol
+            symbol,
+            mark
         };
         return Order.create(order);
     }
@@ -233,10 +235,11 @@ class Trader extends BBModule {
     /**
      * Checks if all previous orders were closed
      * @param symbol
+     * @param mark
      * @returns {Promise<boolean>}
      */
-    static async previousOrdersClosed(symbol) {
-        let orders = await Order.findAll({where: {symbol, closed: 0}});
+    static async previousOrdersClosed(symbol, mark = 'trader') {
+        let orders = await Order.findAll({where: {symbol, mark, closed: 0}});
         return orders.length === 0;
     }
 

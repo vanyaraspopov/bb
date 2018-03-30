@@ -59,6 +59,7 @@ class Scalper extends Trader {
      * @returns {Promise<void>}
      */
     async work() {
+        let mark = 'scalper';
         let moduleParams = await this.activeParams;
         let prices = await this.bb.api.prices();
         for (let mp of moduleParams) {
@@ -78,8 +79,8 @@ class Scalper extends Trader {
                         let sellLow = Number(params['sellLow'].value);
                         let takeProfit = priceToBuy * (1 + sellHigh / 100);
                         let stopLoss = priceToBuy * (1 - sellLow / 100);
-                        if (await Scalper.previousOrdersClosed(symbol)) {
-                            await this.buy(symbol, priceToBuy, sum, takeProfit, stopLoss);
+                        if (await Scalper.previousOrdersClosed(symbol, mark)) {
+                            await this.buy(symbol, priceToBuy, sum, takeProfit, stopLoss, mark);
                         }
                     }
                 } else {
