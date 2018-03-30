@@ -43,7 +43,7 @@ class Trader extends BBModule {
                 title: 'Main trading strategy'
             },
             {
-                action: this._checkOpenedOrders,
+                action: this.checkOpenedOrders,
                 interval: 10 * 1000,
                 title: 'Checking order status'
             }
@@ -58,9 +58,8 @@ class Trader extends BBModule {
      * @param takeProfit
      * @param stopLoss
      * @returns {order}
-     * @private
      */
-    _buy(symbol, price, quantity, takeProfit, stopLoss) {
+    buy(symbol, price, quantity, takeProfit, stopLoss) {
         let time = moment();
         let order = {
             price,
@@ -180,9 +179,8 @@ class Trader extends BBModule {
      * @param symbol
      * @param period
      * @returns {Promise<Array<Model>>}
-     * @private
      */
-    async _getLastCandles(symbol, period) {
+    async getLastCandles(symbol, period) {
         let openTimeMin = moment().subtract(period + 2, 'minutes');
         let candles = await Candle.findAll({
             limit: period,
@@ -237,9 +235,8 @@ class Trader extends BBModule {
      * Checks if all previous orders were closed
      * @param symbol
      * @returns {Promise<boolean>}
-     * @private
      */
-    static async _previousOrdersClosed(symbol) {
+    static async previousOrdersClosed(symbol) {
         let orders = await Order.findAll({where: {symbol, closed: 0}});
         return orders.length === 0;
     }
@@ -272,7 +269,7 @@ class Trader extends BBModule {
                 let symbol = mp.symbol.symbol;
                 let period = this.config.period;
                 let lastTrades = await this._getLastTrades(symbol, period);
-                let lastCandles = await this._getLastCandles(symbol, period);
+                let lastCandles = await this.getLastCandles(symbol, period);
                 if (this._checks(symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
                     let ratioToBuy = Number(params['buy'].value);
@@ -285,8 +282,8 @@ class Trader extends BBModule {
                         let price = prices[symbol];
                         let takeProfit = price * (1 + sellHigh / 100);
                         let stopLoss = price * (1 - sellLow / 100);
-                        if (await Trader._previousOrdersClosed(symbol)) {
-                            await this._buy(symbol, price, sum, takeProfit, stopLoss);
+                        if (await Trader.previousOrdersClosed(symbol)) {
+                            await this.buy(symbol, price, sum, takeProfit, stopLoss);
                         }
                     }
                 }
@@ -296,7 +293,11 @@ class Trader extends BBModule {
         }
     }
 
-    async _checkOpenedOrders() {
+    /**
+     * Checking status of opened orders
+     * @returns {Promise<void>}
+     */
+    async checkOpenedOrders() {
         let orders = await Order.findAll({where: {closed: 0}});
         let prices = await this.bb.api.prices();
         for (let order of orders) {
