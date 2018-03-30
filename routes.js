@@ -141,57 +141,6 @@ module.exports = (app) => {
     });
 
     /**
-     * Currencies
-     */
-    app.get(API_URI + '/currencies', (request, response) => {
-        Currency
-            .findAll()
-            .then(currencies => response.send(currencies))
-            .catch(err => {
-                bb.log.error(err);
-                response.send(err)
-            });
-    });
-
-    app.post(API_URI + '/currencies', (request, response) => {
-        let values = request.body;
-        Currency.create(values)
-            .then(currency => response.send(currency))
-            .catch(err => {
-                bb.log.error(err);
-                response.send(err)
-            });
-    });
-
-    app.put(API_URI + '/currencies/:id', (request, response) => {
-        let id = request.params.id;
-        let values = request.body;
-        Currency
-            .findById(id)
-            .then(currency => {
-                currency = Object.assign(currency, values);
-                return currency.save();
-            })
-            .then(() => response.send(true))
-            .catch(err => {
-                bb.log.error(err);
-                response.send(err)
-            });
-    });
-
-    app.delete(API_URI + '/currencies/:id', (request, response) => {
-        let id = request.params.id;
-        Currency
-            .findById(id)
-            .then(currency => currency.destroy())
-            .then(() => response.send(true))
-            .catch(err => {
-                bb.log.error(err);
-                response.send(err)
-            });
-    });
-
-    /**
      * Symbols
      */
     app.get(API_URI + '/symbols', loadUser, (request, response) => {
