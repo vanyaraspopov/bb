@@ -1,17 +1,24 @@
 const db = require('../../database/db');
 const moment = require('moment');
 
+const BBModule = require('./module');
+
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
-const Currency = db.sequelize.models['Currency'];
+const ModuleParameters = db.sequelize.models['ModuleParameters'];
 
 const QUANTITY_PRECISION = 8;
 
-class DataCollector {
+class DataCollector extends BBModule {
 
     constructor(bb) {
-        this.bb = bb;
+        super(bb);
+        this.module = {
+            id: 1,
+            title: 'Сбор данных',
+            pm2_name: 'bb.data-collector',
+        };
         this._symbols = undefined;
     }
 
@@ -86,19 +93,25 @@ class DataCollector {
         return quantities;
     }
 
+    /**
+     * Returns symbols defined in parameters of this module
+     * @returns {Promise<*>}
+     */
     async getSymbols() {
         if (this._symbols !== undefined) {
             return this._symbols;
         }
 
+        let moduleParameters = await ModuleParameters.findAll({
+            where: {
+                module_id: this.module.id
+            },
+            include: ['symbol']
+        });
+
         let symbols = [];
-        try {
-            let currencies = await Currency.findAll();
-            for (let currency of currencies) {
-                symbols.push(currency.quot + currency.base);
-            }
-        } catch (error) {
-            this.bb.log.error(error);
+        for (let mp of moduleParameters) {
+            symbols.push(mp.symbol.symbol);
         }
 
         this._symbols = symbols;
@@ -178,14 +191,22 @@ class DataCollector {
         }
     }
 
-    run() {
-        let gettingAggTradesInterval = 60 * 1000;  //  ms
-        setInterval(() => this.collectAggTrades(gettingAggTradesInterval), gettingAggTradesInterval);
-        this.collectAggTrades(gettingAggTradesInterval).catch(err => this.bb.log.error(err));
-
-        let gettingCandlesInterval = 60 * 1000;
-        setInterval(() => this.collectCandles(gettingCandlesInterval), gettingCandlesInterval);
-        this.collectCandles(gettingCandlesInterval).catch(err => this.bb.log.error(err));
+    /**
+     * @inheritDoc
+     */
+    tasks() {
+        return [
+            {
+                action: this.collectAggTrades,
+                interval: 60 * 1000,
+                title: 'Collecting aggregated trades info'
+            },
+            {
+                action: this.collectCandles,
+                interval: 60 * 1000,
+                title: 'Collecting candles info'
+            }
+        ];
     }
 }
 
