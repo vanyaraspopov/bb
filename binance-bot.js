@@ -4,9 +4,10 @@ const db = require('./database/db');
 const logger = require('./components/logger/logger');
 const utils = require('./components/utils/utils');
 
-//  Classes
-const Trader = require('./components/modules/trader');
+//  Modules
 const DataCollector = require('./components/modules/data-collector');
+const Trader = require('./components/modules/trader');
+const Scalper = require('./components/modules/scalper');
 
 let bb = {
     config,
@@ -38,5 +39,6 @@ let bb = {
 
 bb.components.dataCollector = new DataCollector(bb);
 bb.components.trader = new Trader(bb);
+bb.components.scalper = new Scalper(bb);
 
 module.exports = bb;
