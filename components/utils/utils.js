@@ -38,6 +38,25 @@ module.exports = {
             start: minutes[0],
             end: minutes[minutes.length - 1] + 999
         };
+    },
+
+    /**
+     * Sort array of objects
+     * @param {Array} array of objects with property "key"
+     * @param {string} property Name of property to sort by
+     * @param {string} direction ASC|DESC
+     */
+    sortByProperty(array, property, direction = 'ASC') {
+        let asc = 1;
+        if (direction === 'DESC') asc = -1;
+        array.sort((a, b) => {
+            if (a[property] > b[property]) {
+                return asc;
+            } else if (a[property] < b[property]) {
+                return -asc;
+            }
+            return 0;
+        });
     }
 
 };

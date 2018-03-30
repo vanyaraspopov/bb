@@ -8,7 +8,7 @@ const trader = bb.components.trader;
 
 describe('bb.trader', () => {
 
-    describe('_compareTradesQuantity', () => {
+    describe('compareTradesQuantity', () => {
 
         it('should work correct', () => {
             let trades = [
@@ -24,7 +24,7 @@ describe('bb.trader', () => {
                 { quantity: 2 },
                 { quantity: 2 }
             ];
-            let result = Trader._compareTradesQuantity(trades);
+            let result = Trader.compareTradesQuantity(trades);
             expect(result).to.equal(11 / 6);
         });
 
@@ -41,7 +41,7 @@ describe('bb.trader', () => {
                 { quantity: 2 },
                 { quantity: 2 }
             ];
-            let result = Trader._compareTradesQuantity(trades);
+            let result = Trader.compareTradesQuantity(trades);
             expect(result).to.equal(2);
         });
 
@@ -58,13 +58,13 @@ describe('bb.trader', () => {
                 { quantity: 1 },
                 { quantity: 1 }
             ];
-            let result = Trader._compareTradesQuantity(trades);
+            let result = Trader.compareTradesQuantity(trades);
             expect(result).to.equal(0.5);
         });
 
         it('should throw an error on empty array', () => {
             assert.throws(() => {
-                Trader._compareTradesQuantity([]);
+                Trader.compareTradesQuantity([]);
             }, Error, "Array of trades shouldn't be empty");
         });
 
@@ -73,13 +73,13 @@ describe('bb.trader', () => {
                 { quantity: 0 },
                 { quantity: 1 }
             ];
-            let result = Trader._compareTradesQuantity(trades);
+            let result = Trader.compareTradesQuantity(trades);
             expect(result).to.equal(Number.POSITIVE_INFINITY);
         });
 
     });
 
-    describe('_comparePrices', () => {
+    describe('comparePrices', () => {
 
         it('should work correct', () => {
             let candles = [
@@ -95,7 +95,7 @@ describe('bb.trader', () => {
                 { close: 2 },
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(true);
         });
 
@@ -113,7 +113,7 @@ describe('bb.trader', () => {
                 { close: 1 },
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -131,7 +131,7 @@ describe('bb.trader', () => {
                 { close: 2 },
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -141,7 +141,7 @@ describe('bb.trader', () => {
                 { close: 100 },
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -151,7 +151,7 @@ describe('bb.trader', () => {
                 { close: 100 },
                 { close: 1 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -161,12 +161,12 @@ describe('bb.trader', () => {
                 { close: 100 },
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(true);
         });
 
         it('return false on empty array', () => {
-            let result = Trader._comparePrices([]);
+            let result = Trader.comparePrices([]);
             expect(result).to.equal(false);
         });
 
@@ -174,7 +174,7 @@ describe('bb.trader', () => {
             let candles = [
                 { close: 2 }
             ];
-            let result = Trader._comparePrices(candles);
+            let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
         });
 

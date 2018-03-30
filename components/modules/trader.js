@@ -38,7 +38,7 @@ class Trader extends BBModule {
     get tasks() {
         return [
             {
-                action: this._work,
+                action: this.work,
                 interval: 60 * 1000,
                 title: 'Main trading strategy'
             },
@@ -108,7 +108,7 @@ class Trader extends BBModule {
      * @param {Array} trades Last trades data
      * @return {Number}
      */
-    static _compareTradesQuantity(trades) {
+    static compareTradesQuantity(trades) {
         if (trades.length === 0) {
             throw new Error("Array of trades shouldn't be empty");
         }
@@ -144,9 +144,8 @@ class Trader extends BBModule {
      * Compares candles' close prices of second and first half.
      * @param {Array} candles
      * @returns {boolean} True if average close price of second half is greater than in a first half.
-     * @private
      */
-    static _comparePrices(candles) {
+    static comparePrices(candles) {
         if (candles.length === 0) {
             return false;
         }
@@ -198,7 +197,7 @@ class Trader extends BBModule {
                 openTimeMin: openTimeMin.utc().format(this.bb.config.moment.format)
             };
         }
-        this._sortByProperty(candles, 'openTime', 'ASC');
+        this.bb.utils.sortByProperty(candles, 'openTime', 'ASC');
         return candles;
     }
 
@@ -207,9 +206,8 @@ class Trader extends BBModule {
      * @param {string} symbol
      * @param {int} period in minutes
      * @returns {Array}
-     * @private
      */
-    async _getLastTrades(symbol, period) {
+    async getLastTrades(symbol, period) {
         let timeStartMin = moment().subtract(period + 2, 'minutes');
         let lastTrades = await AggTrade.findAll({
             limit: period,
@@ -227,7 +225,7 @@ class Trader extends BBModule {
                 timeStartMin: timeStartMin.utc().format(this.bb.config.moment.format)
             };
         }
-        this._sortByProperty(lastTrades, 'timeStart', 'ASC');
+        this.bb.utils.sortByProperty(lastTrades, 'timeStart', 'ASC');
         return lastTrades;
     }
 
@@ -242,33 +240,17 @@ class Trader extends BBModule {
     }
 
     /**
-     * Sort array of objects
-     * @param {Array} array of objects with property "key"
-     * @param {string} property Name of property to sort by
-     * @param {string} direction ASC|DESC
-     * @private
+     * Main trading strategy
+     * @returns {Promise<void>}
      */
-    _sortByProperty(array, property, direction = 'ASC') {
-        let asc = 1;
-        if (direction === 'DESC') asc = -1;
-        array.sort((a, b) => {
-            if (a[property] > b[property]) {
-                return asc;
-            } else if (a[property] < b[property]) {
-                return -asc;
-            }
-            return 0;
-        });
-    }
-
-    async _work() {
+    async work() {
         let moduleParams = await this.activeParams;
         let prices = await this.bb.api.prices();
         for (let mp of moduleParams) {
             try {
                 let symbol = mp.symbol.symbol;
                 let period = this.config.period;
-                let lastTrades = await this._getLastTrades(symbol, period);
+                let lastTrades = await this.getLastTrades(symbol, period);
                 let lastCandles = await this.getLastCandles(symbol, period);
                 if (this._checks(symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
@@ -276,8 +258,8 @@ class Trader extends BBModule {
                     let sellHigh = Number(params['sellHigh'].value);
                     let sellLow = Number(params['sellLow'].value);
                     let sum = Number(params['sum'].value);
-                    let quantityRatio = Trader._compareTradesQuantity(lastTrades);
-                    let priceIncreasing = Trader._comparePrices(lastCandles);
+                    let quantityRatio = Trader.compareTradesQuantity(lastTrades);
+                    let priceIncreasing = Trader.comparePrices(lastCandles);
                     if (quantityRatio >= ratioToBuy && priceIncreasing) {
                         let price = prices[symbol];
                         let takeProfit = price * (1 + sellHigh / 100);
