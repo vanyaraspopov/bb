@@ -14,12 +14,58 @@ class DataCollector extends BBModule {
 
     constructor(bb) {
         super(bb);
-        this.module = {
+        this._symbols = undefined;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    get module() {
+        return {
             id: 1,
             title: 'Сбор данных',
             pm2_name: 'bb.data-collector',
-        };
-        this._symbols = undefined;
+        }
+    }
+
+    /**
+     * Async getter. Returns symbols defined in parameters of this module
+     * @returns {Promise<*>}
+     */
+    get symbols() {
+        return (async () => {
+            if (this._symbols !== undefined) {
+                return this._symbols;
+            }
+
+            let moduleParameters = await this.activeParams;
+
+            let symbols = [];
+            for (let mp of moduleParameters) {
+                symbols.push(mp.symbol.symbol);
+            }
+
+            this._symbols = symbols;
+            return this._symbols;
+        })();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    get tasks() {
+        return [
+            {
+                action: this.collectAggTrades,
+                interval: 60 * 1000,
+                title: 'Collecting aggregated trades info'
+            },
+            {
+                action: this.collectCandles,
+                interval: 60 * 1000,
+                title: 'Collecting candles info'
+            }
+        ];
     }
 
     /**
@@ -93,31 +139,6 @@ class DataCollector extends BBModule {
         return quantities;
     }
 
-    /**
-     * Returns symbols defined in parameters of this module
-     * @returns {Promise<*>}
-     */
-    async getSymbols() {
-        if (this._symbols !== undefined) {
-            return this._symbols;
-        }
-
-        let moduleParameters = await ModuleParameters.findAll({
-            where: {
-                module_id: this.module.id
-            },
-            include: ['symbol']
-        });
-
-        let symbols = [];
-        for (let mp of moduleParameters) {
-            symbols.push(mp.symbol.symbol);
-        }
-
-        this._symbols = symbols;
-        return this._symbols;
-    }
-
     async collectCandles(interval) {
         let time = moment();
 
@@ -133,7 +154,7 @@ class DataCollector extends BBModule {
             });
         }
 
-        for (let symbol of await this.getSymbols()) {
+        for (let symbol of await this.symbols) {
             try {
                 let candles = await this.bb.api.candles({
                     symbol: symbol,
@@ -173,7 +194,7 @@ class DataCollector extends BBModule {
         let startTime = Number(borders.start);
         let endTime = Number(borders.end);
 
-        let symbols = await this.getSymbols();
+        let symbols = await this.symbols;
         for (let symbol of symbols) {
             try {
                 let aggTrades = await this.getAggTrades(symbol, startTime, endTime);
@@ -189,24 +210,6 @@ class DataCollector extends BBModule {
                 this.bb.log.error(error);
             }
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    tasks() {
-        return [
-            {
-                action: this.collectAggTrades,
-                interval: 60 * 1000,
-                title: 'Collecting aggregated trades info'
-            },
-            {
-                action: this.collectCandles,
-                interval: 60 * 1000,
-                title: 'Collecting candles info'
-            }
-        ];
     }
 }
 
