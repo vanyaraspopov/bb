@@ -17,7 +17,7 @@ module.exports = (app) => {
     /**
      * Modules
      */
-    app.get(API_URI + "/modules", (request, response) => {
+    app.get(API_URI + "/modules", loadUser, (request, response) => {
         connectToPm2ThenDo(
             () => {
                 return Module
@@ -55,7 +55,7 @@ module.exports = (app) => {
         );
     });
 
-    app.get(API_URI + "/modules/start/:name", (request, response) => {
+    app.get(API_URI + "/modules/start/:name", loadUser, (request, response) => {
         connectToPm2ThenDo(
             () => {
                 let script = `./${request.params.name}.js`;
@@ -71,7 +71,7 @@ module.exports = (app) => {
         );
     });
 
-    app.get(API_URI + "/modules/stop/:name", (request, response) => {
+    app.get(API_URI + "/modules/stop/:name", loadUser, (request, response) => {
         connectToPm2ThenDo(
             () => {
                 let script = request.params.name;
@@ -87,7 +87,7 @@ module.exports = (app) => {
         );
     });
 
-    app.get(API_URI + "/modules/params/:module_id", (request, response) => {
+    app.get(API_URI + "/modules/params/:module_id", loadUser, (request, response) => {
         let module_id = request.params.module_id;
         ModuleParameters
             .findAll({where: module_id})
@@ -98,7 +98,7 @@ module.exports = (app) => {
             });
     });
 
-    app.post(API_URI + '/modules/params', (request, response) => {
+    app.post(API_URI + '/modules/params', loadUser, (request, response) => {
         let values = request.body;
         ModuleParameters.create(values)
             .then(mp => ModuleParameters.findOne({
@@ -112,7 +112,7 @@ module.exports = (app) => {
             });
     });
 
-    app.put(API_URI + '/modules/params/:id', (request, response) => {
+    app.put(API_URI + '/modules/params/:id', loadUser, (request, response) => {
         let id = request.params.id;
         let values = request.body;
         ModuleParameters
@@ -128,7 +128,7 @@ module.exports = (app) => {
             });
     });
 
-    app.delete(API_URI + '/modules/params/:id', (request, response) => {
+    app.delete(API_URI + '/modules/params/:id', loadUser, (request, response) => {
         let id = request.params.id;
         ModuleParameters
             .findById(id)
@@ -153,7 +153,7 @@ module.exports = (app) => {
             });
     });
 
-    app.post(API_URI + '/symbols', (request, response) => {
+    app.post(API_URI + '/symbols', loadUser, (request, response) => {
         let values = request.body;
         Symb.create(values)
             .then(symbol => response.send(symbol))
@@ -163,7 +163,7 @@ module.exports = (app) => {
             });
     });
 
-    app.delete(API_URI + '/symbols/:id', (request, response) => {
+    app.delete(API_URI + '/symbols/:id', loadUser, (request, response) => {
         let id = request.params.id;
         Symb
             .findById(id)
