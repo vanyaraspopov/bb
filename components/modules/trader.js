@@ -208,16 +208,26 @@ class Trader extends BBModule {
      * Returns last trades
      * @param {string} symbol
      * @param {int} period in minutes
+     * @param {undefined|string|Object<Moment>} timeStartMax
      * @returns {Array}
      */
-    async getLastTrades(symbol, period) {
-        let timeStartMin = moment().subtract(period + 2, 'minutes');
+    async getLastTrades(symbol, period, timeStartMax = undefined) {
+        if (timeStartMax !== undefined) {
+            timeStartMax = moment(timeStartMax);
+        } else {
+            timeStartMax = moment();
+        }
+        let timeStartMin = moment(timeStartMax);
+        timeStartMin.startOf('minute').subtract(period + 2, 'minutes');
         let lastTrades = await AggTrade.findAll({
             limit: period,
             order: [['timeStart', 'DESC']],
             where: {
                 symbol: symbol,
-                timeStart: {[Op.gte]: timeStartMin.unix() * 1000}
+                timeStart: {
+                    [Op.gte]: timeStartMin.unix() * 1000,
+                    [Op.lte]:  timeStartMax.unix() * 1000
+                }
             }
         });
         if (lastTrades.length < period) {
@@ -230,6 +240,20 @@ class Trader extends BBModule {
         }
         this.bb.utils.sortByProperty(lastTrades, 'timeStart', 'ASC');
         return lastTrades;
+    }
+
+    /**
+     * Makes a decision to buy
+     * @param trades
+     * @param candles
+     * @param params
+     * @returns {boolean}
+     */
+    static haveToBuy(trades, candles, params) {
+        let ratioToBuy = Number(params['buy'].value);
+        let quantityRatio = Trader.compareTradesQuantity(trades);
+        let priceIncreasing = Trader.comparePrices(candles);
+        return quantityRatio >= ratioToBuy && priceIncreasing;
     }
 
     /**
@@ -258,17 +282,14 @@ class Trader extends BBModule {
                 let lastCandles = await this.getLastCandles(symbol, period);
                 if (this._checks(symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
-                    let ratioToBuy = Number(params['buy'].value);
-                    let sellHigh = Number(params['sellHigh'].value);
-                    let sellLow = Number(params['sellLow'].value);
-                    let sum = Number(params['sum'].value);
-                    let quantityRatio = Trader.compareTradesQuantity(lastTrades);
-                    let priceIncreasing = Trader.comparePrices(lastCandles);
-                    if (quantityRatio >= ratioToBuy && priceIncreasing) {
-                        let price = prices[symbol];
-                        let takeProfit = price * (1 + sellHigh / 100);
-                        let stopLoss = price * (1 - sellLow / 100);
+                    if (Trader.haveToBuy(lastTrades, lastCandles, params)) {
                         if (await Trader.previousOrdersClosed(symbol)) {
+                            let price = prices[symbol];
+                            let sellHigh = Number(params['sellHigh'].value);
+                            let sellLow = Number(params['sellLow'].value);
+                            let sum = Number(params['sum'].value);
+                            let takeProfit = price * (1 + sellHigh / 100);
+                            let stopLoss = price * (1 - sellLow / 100);
                             await this.buy(symbol, price, sum, takeProfit, stopLoss);
                         }
                     }
