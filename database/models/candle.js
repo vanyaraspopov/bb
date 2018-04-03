@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-    var Candle = sequelize.define('Candle', {
+    let Candle = sequelize.define('Candle', {
         openTime: DataTypes.BIGINT,
         closeTime: DataTypes.BIGINT,
         open: DataTypes.DECIMAL,
@@ -21,11 +21,25 @@ module.exports = (sequelize, DataTypes) => {
     };
 
     /**
+     * Returns average price for list of candles.
+     * @param candles
+     * @returns {Number|undefined}
+     */
+    Candle.avgPrice = function (candles) {
+        if (candles.length === 0) {
+            return undefined;
+        }
+        let prices = candles.map(candle => candle.close);
+        let sum = prices.reduce((prev, curr) => prev + curr, 0);
+        return sum / candles.length;
+    };
+
+    /**
      * Check if sequence of candles is continuous
      * @param {Array} candles List of candles
      * @return {boolean}
      */
-    Candle.checkSequence = function(candles) {
+    Candle.checkSequence = function (candles) {
         if (candles.length === 0) {
             return false;
         }

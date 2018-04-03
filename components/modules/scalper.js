@@ -41,20 +41,6 @@ class Scalper extends Trader {
     }
 
     /**
-     * Returns average price for list of candles.
-     * @param candles
-     * @returns {Number|undefined}
-     */
-    static avgPrice(candles) {
-        if (candles.length === 0) {
-            return undefined;
-        }
-        let prices = candles.map(candle => candle.close);
-        let sum = prices.reduce((prev, curr) => prev + curr, 0);
-        return sum / candles.length;
-    }
-
-    /**
      * Scalper trading strategy
      * @returns {Promise<void>}
      */
@@ -70,7 +56,7 @@ class Scalper extends Trader {
                 let lastCandles = await this.getLastCandles(symbol, period);
                 if (Candle.checkSequence(lastCandles)) {
                     let subsidence = Number(params['subsidence'].value);
-                    let avgPrice = Scalper.avgPrice(lastCandles);
+                    let avgPrice = Candle.avgPrice(lastCandles);
                     let lastPrice = Number(prices[symbol]);
                     let priceToBuy = avgPrice * (1 - subsidence / 100);
                     if (lastPrice < priceToBuy) {

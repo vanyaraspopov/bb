@@ -6,6 +6,69 @@ const Candle = bb.models['Candle'];
 
 describe('Candle model', () => {
 
+    describe('avgPrice', () => {
+
+        it('should work correct', () => {
+            let candles = [
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(17 / 11);
+        });
+
+        it('should work correct 2', () => {
+            let candles = [
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 1 },
+                { close: 2 }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(17 / 11);
+        });
+
+        it('should work correct 3', () => {
+            let candles = [
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 },
+                { close: 2 }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(2);
+        });
+
+        it('return undefined on empty array', () => {
+            let result = Candle.avgPrice([]);
+            expect(result).to.equal(undefined);
+        });
+
+    });
+
     describe('checkSequence', () => {
 
         it('should return false on empty', () => {
