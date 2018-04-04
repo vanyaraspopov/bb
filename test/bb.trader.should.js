@@ -66,6 +66,14 @@ describe('bb.trader', () => {
         it('should work correct with real data', () => {
             let trades = [
                 {
+                    "id": 163475,
+                    "timeStart": 1522747800000,
+                    "timeEnd": 1522747859999,
+                    "quantity": 23694,
+                    "symbol": "ZILBTC",
+                    "timeFormat": "201804030930"
+                },
+                {
                     "id": 163491,
                     "timeStart": 1522747860000,
                     "timeEnd": 1522747919999,
@@ -296,18 +304,10 @@ describe('bb.trader', () => {
                     "quantity": 3406,
                     "symbol": "ZILBTC",
                     "timeFormat": "201804030959"
-                },
-                {
-                    "id": 163955,
-                    "timeStart": 1522749600000,
-                    "timeEnd": 1522749659999,
-                    "quantity": 139175,
-                    "symbol": "ZILBTC",
-                    "timeFormat": "201804031000"
                 }
             ];
             let result = Trader.compareTradesQuantity(trades);
-            expect(result).to.equal(2900807 / 617520);
+            expect(result).to.equal(2790321 / 612525);
         });
 
         it('should throw an error on empty array', () => {
@@ -686,6 +686,14 @@ describe('bb.trader', () => {
         it('should not buy', () => {
             let trades = [
                 {
+                    "id": 163475,
+                    "timeStart": 1522747800000,
+                    "timeEnd": 1522747859999,
+                    "quantity": 23694,
+                    "symbol": "ZILBTC",
+                    "timeFormat": "201804030930"
+                },
+                {
                     "id": 163491,
                     "timeStart": 1522747860000,
                     "timeEnd": 1522747919999,
@@ -916,14 +924,6 @@ describe('bb.trader', () => {
                     "quantity": 3406,
                     "symbol": "ZILBTC",
                     "timeFormat": "201804030959"
-                },
-                {
-                    "id": 163955,
-                    "timeStart": 1522749600000,
-                    "timeEnd": 1522749659999,
-                    "quantity": 139175,
-                    "symbol": "ZILBTC",
-                    "timeFormat": "201804031000"
                 }
             ];
             let candles = [

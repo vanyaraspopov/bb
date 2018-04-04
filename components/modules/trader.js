@@ -137,9 +137,6 @@ class Trader extends BBModule {
             }
         }
 
-        firstPeriodQuantity = firstPeriodQuantity.toFixed(PRECISION_QUANTITY);
-        secondPeriodQuantity = secondPeriodQuantity.toFixed(PRECISION_QUANTITY);
-
         return secondPeriodQuantity / firstPeriodQuantity;
     }
 
