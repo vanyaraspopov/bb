@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
         timeFormat: DataTypes.STRING,
         closed: DataTypes.BOOLEAN,
         success: DataTypes.BOOLEAN,
-        mark: DataTypes.STRING
+        mark: DataTypes.STRING,
+        ratio: DataTypes.DECIMAL
     }, {});
     order.associate = function (models) {
         // associations can be defined here

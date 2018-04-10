@@ -59,9 +59,10 @@ class Trader extends BBModule {
      * @param takeProfit
      * @param stopLoss
      * @param mark that points component creating an order
+     * @param ratio last volumes ratio
      * @returns {order}
      */
-    buy(symbol, price, quantity, takeProfit, stopLoss, mark = 'trader') {
+    buy(symbol, price, quantity, takeProfit, stopLoss, mark = 'trader', ratio = null) {
         let time = moment();
         let order = {
             price,
@@ -71,7 +72,8 @@ class Trader extends BBModule {
             takeProfit: takeProfit.toFixed(PRECISION_PRICE),
             stopLoss: stopLoss.toFixed(PRECISION_PRICE),
             symbol,
-            mark
+            mark,
+            ratio: ratio.toFixed(PRECISION_QUANTITY)
         };
         return Order.create(order);
     }
@@ -287,7 +289,8 @@ class Trader extends BBModule {
                             let sum = Number(params['sum'].value);
                             let takeProfit = price * (1 + sellHigh / 100);
                             let stopLoss = price * (1 - sellLow / 100);
-                            await this.buy(symbol, price, sum, takeProfit, stopLoss);
+                            let quantityRatio = Trader.compareTradesQuantity(lastTrades);
+                            await this.buy(symbol, price, sum, takeProfit, stopLoss, 'trader', quantityRatio);
                         }
                     }
                 }
