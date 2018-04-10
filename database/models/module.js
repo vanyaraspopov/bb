@@ -9,7 +9,9 @@ module.exports = (sequelize, DataTypes) => {
     Module.associate = function (models) {
         models.Module.hasMany(models.ModuleParameters, {
             foreignKey: 'module_id',
-            as: 'params'
+            as: 'params',
+            onDelete: 'cascade',
+            hooks: true
         });
     };
 

@@ -15,7 +15,9 @@ module.exports = (sequelize, DataTypes) => {
     Symb.associate = function (models) {
         models.Symb.hasMany(models.ModuleParameters, {
             foreignKey: 'symbol_id',
-            as: 'params'
+            as: 'params',
+            onDelete: 'cascade',
+            hooks: true
         });
     };
 
