@@ -15,7 +15,7 @@ module.exports = {
                 type: Sequelize.STRING
             },
             sum: {
-                type: Sequelize.DECIMAL
+                type: Sequelize.DECIMAL(32,8)
             },
             params: {
                 type: Sequelize.STRING

@@ -5,7 +5,7 @@ module.exports = {
     return queryInterface
         .addColumn('orders', 'stopLoss', {
           allowNull: true,
-          type: Sequelize.DECIMAL
+          type: Sequelize.DECIMAL(32,8)
         });
   },
 

@@ -18,7 +18,7 @@ module.exports = {
       },
       quantity: {
         allowNull: false,
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL(32,8)
       }
     });
   },

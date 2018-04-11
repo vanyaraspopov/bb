@@ -9,10 +9,10 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       price: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL(32,8)
       },
       quantity: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.DECIMAL(32,8)
       },
       closed: {
         type: Sequelize.BOOLEAN
