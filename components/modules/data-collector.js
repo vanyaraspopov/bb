@@ -9,6 +9,7 @@ const ModuleParameters = db.sequelize.models['ModuleParameters'];
 const QUANTITY_PRECISION = 8;
 
 const BBModule = require('./module');
+
 class DataCollector extends BBModule {
 
     constructor(bb) {
@@ -138,6 +139,48 @@ class DataCollector extends BBModule {
         return quantities;
     }
 
+    /**
+     * If some of trades already exist in database then set 'id' property to them
+     * @param trades
+     * @returns {Promise<void>}
+     */
+    static async processExistingTrades(trades) {
+        /* Query optimization */
+        const Op = db.Sequelize.Op;
+        let whereConditions = [];
+        for (let trade of trades) {
+            whereConditions.push({
+                symbol: trade.symbol,
+                timeStart: trade.timeStart
+            });
+        }
+
+        let where = {
+            [Op.or]: []
+        };
+        for (let cond of whereConditions) {
+            where[Symbol.for('or')].push({
+                [Op.and]: [
+                    {symbol: cond.symbol},
+                    {timeStart: cond.timeStart},
+                ]
+            });
+        }
+        /* Query optimization */
+
+        //  Comparing trades and setting id if trade exists
+        let existingTrades = await AggTrade.findAll({where});
+        for (let i = 0; i < trades.length; i++) {
+            let trade = trades[i];
+            for (let k = 0; k < existingTrades.length; k++) {
+                let existingTrade = existingTrades[k];
+                if (trade.timeStart === existingTrade.timeStart && trade.symbol === existingTrade.symbol) {
+                    trade.id = existingTrade.id;
+                }
+            }
+        }
+    }
+
     async collectCandles(interval) {
         let time = moment();
 
@@ -153,6 +196,7 @@ class DataCollector extends BBModule {
             });
         }
 
+        let candles = [];
         for (let symbol of await this.symbols) {
             try {
                 let candles = await this.bb.api.candles({
@@ -162,26 +206,26 @@ class DataCollector extends BBModule {
                     endTime: lastMinutes[lastMinutes.length - 1].end,
                 });
                 for (let candle of candles) {
-                    Candle.count({
+                    let count = await Candle.count({
                         where: {
                             symbol: symbol,
                             openTime: candle.openTime,
                             closeTime: candle.closeTime
                         }
-                    }).then(count => {
-                        if (count === 0) {
-                            candle.symbol = symbol;
-                            candle.timeFormat = moment(candle.openTime).utc().format(this.bb.config.moment.format);
-                            return Candle.create(candle);
-                        }
-                    }).catch(error => {
-                        this.bb.log.error(error);
                     });
+                    if (count === 0) {
+                        candle.symbol = symbol;
+                        candle.timeFormat = moment(candle.openTime).utc().format(this.bb.config.moment.format);
+                        candles.push(candle);
+                    }
                 }
             } catch (error) {
                 this.bb.log.error(error);
             }
         }
+
+        Candle.bulkCreate(candles)
+            .catch(err => this.bb.log.error(err));
 
     }
 
@@ -193,6 +237,7 @@ class DataCollector extends BBModule {
         let startTime = Number(borders.start);
         let endTime = Number(borders.end);
 
+        let trades = [];
         let symbols = await this.symbols;
         for (let symbol of symbols) {
             try {
@@ -202,13 +247,42 @@ class DataCollector extends BBModule {
                 for (let timeStart in quantities) {
                     if (quantities.hasOwnProperty(timeStart)) {
                         let ts = Number(timeStart);
-                        await this._createAggTrade(symbol, ts, quantities[ts]);
+                        let trade = await this.prepareAggTrade(symbol, ts, quantities[ts]);
+                        trades.push(trade);
                     }
                 }
             } catch (error) {
                 this.bb.log.error(error);
             }
         }
+
+        DataCollector.processExistingTrades(trades)
+            .then(() => {
+                return AggTrade.bulkCreate(trades, {
+                    updateOnDuplicate: ['quantity']
+                });
+            })
+            .catch(err => this.bb.log.error(err));
+    }
+
+    /**
+     * Preparing trade object fields for inserting to database
+     * @param symbol
+     * @param timeStart
+     * @param quantity
+     * @returns {Promise<{symbol: *, timeStart: *, timeEnd: number, quantity: number | *, timeFormat: string}>}
+     */
+    async prepareAggTrade(symbol, timeStart, quantity) {
+        quantity = Number(quantity.toFixed(QUANTITY_PRECISION));
+        let timeEnd = moment(timeStart).add(1, 'minutes').unix() * 1000 - 1;
+        let timeFormat = moment(timeStart).utc().format(this.bb.config.moment.format);
+        return {
+            symbol,
+            timeStart,
+            timeEnd,
+            quantity,
+            timeFormat
+        };
     }
 }
 
