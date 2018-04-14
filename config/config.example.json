@@ -6,18 +6,24 @@
     "test": true
   },
   "db": {
-    "dialect": "sqlite",
-    "database": "<database>",
-    "storage": "./path/to/database"
+    "database": "binance_bot_db",
+    "dialect": "mysql",
+    "host": "localhost",
+    "username": "root",
+    "password": "",
+    "logging": true,
+    "define": {
+      "timestamps": false
+    },
+    "pool": {
+      "max": 5,
+      "min": 0,
+      "idle": 20000,
+      "acquire": 20000
+    }
   },
   "moment": {
     "format": "YYYYMMDDHHmm"
-  },
-  "pm2": {
-    "modules": {
-      "bb.data-collector": "Сбор данных",
-      "bb.trader": "Торговля"
-    }
   },
   "server": {
     "port": "3000",
