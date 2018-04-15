@@ -117,25 +117,26 @@ class Trader extends BBModule {
         if (trades.length === 0) {
             throw new Error("Array of trades shouldn't be empty");
         }
+        let quantities = trades.map(t => Number(t.quantity));
 
         let firstPeriodQuantity = 0;
         let secondPeriodQuantity = 0;
 
-        let isOdd = trades.length % 2 === 1;
+        let isOdd = quantities.length % 2 === 1;
         if (isOdd) {
-            let middle = Math.floor(trades.length / 2);
-            firstPeriodQuantity += trades[middle].quantity / 2;
-            secondPeriodQuantity += trades[middle].quantity / 2;
+            let middle = Math.floor(quantities.length / 2);
+            firstPeriodQuantity += quantities[middle] / 2;
+            secondPeriodQuantity += quantities[middle] / 2;
         }
 
-        let firstHalfLength = Math.floor(trades.length / 2);
-        let secondHalfStart = Math.ceil(trades.length / 2);
-        for (let i = 0; i < trades.length; i++) {
+        let firstHalfLength = Math.floor(quantities.length / 2);
+        let secondHalfStart = Math.ceil(quantities.length / 2);
+        for (let i = 0; i < quantities.length; i++) {
             if (i < firstHalfLength) {
-                firstPeriodQuantity += trades[i].quantity;
+                firstPeriodQuantity += quantities[i];
             }
             if (i >= secondHalfStart) {
-                secondPeriodQuantity += trades[i].quantity;
+                secondPeriodQuantity += quantities[i];
             }
         }
 
@@ -151,7 +152,7 @@ class Trader extends BBModule {
         if (candles.length === 0) {
             return false;
         }
-        let prices = candles.map(candle => candle.close);
+        let prices = candles.map(candle => Number(candle.close));
 
         let firstPeriodPrices = [];
         let secondPeriodPrices = [];
@@ -256,7 +257,7 @@ class Trader extends BBModule {
     }
 
     /**
-     * Checks if all previous orders were closed
+     * Checks if all previous orders are closed
      * @param symbol
      * @param mark
      * @returns {Promise<boolean>}

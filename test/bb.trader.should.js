@@ -63,6 +63,58 @@ describe('bb.trader', () => {
             expect(result).to.equal(0.5);
         });
 
+        it('should work correct with strings', () => {
+            let trades = [
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '2'}
+            ];
+            let result = Trader.compareTradesQuantity(trades);
+            expect(result).to.equal(11 / 6);
+        });
+
+        it('should work correct with strings 2', () => {
+            let trades = [
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '2'}
+            ];
+            let result = Trader.compareTradesQuantity(trades);
+            expect(result).to.equal(9 / 6);
+        });
+
+        it('should work correct with strings 3', () => {
+            let trades = [
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '2'},
+                {quantity: '1'},
+                {quantity: '1'},
+                {quantity: '2'},
+                {quantity: '1'},
+                {quantity: '1'}
+            ];
+            let result = Trader.compareTradesQuantity(trades);
+            expect(result).to.equal(6 / 9);
+        });
+
         it('should work correct with real data', () => {
             let trades = [
                 {
@@ -378,6 +430,60 @@ describe('bb.trader', () => {
                 {close: 2},
                 {close: 2},
                 {close: 2}
+            ];
+            let result = Trader.comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct with strings', () => {
+            let candles = [
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '0'},
+                {close: '0'},
+                {close: '2'},
+                {close: '4'},
+                {close: '4'},
+                {close: '2'}
+            ];
+            let result = Trader.comparePrices(candles);
+            expect(result).to.equal(true);
+        });
+
+        it('should work correct with strings 2', () => {
+            let candles = [
+                {close: '0'},
+                {close: '0'},
+                {close: '2'},
+                {close: '4'},
+                {close: '4'},
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '1'},
+                {close: '2'}
+            ];
+            let result = Trader.comparePrices(candles);
+            expect(result).to.equal(false);
+        });
+
+        it('should work correct with strings 3', () => {
+            let candles = [
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'},
+                {close: '2'}
             ];
             let result = Trader.comparePrices(candles);
             expect(result).to.equal(false);
