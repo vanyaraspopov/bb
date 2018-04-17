@@ -62,6 +62,60 @@ describe('Candle model', () => {
             expect(result).to.equal(2);
         });
 
+        it('should work correct with strings', () => {
+            let candles = [
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(17 / 11);
+        });
+
+        it('should work correct with strings 2', () => {
+            let candles = [
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '1' },
+                { close: '2' }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(17 / 11);
+        });
+
+        it('should work correct with strings 3', () => {
+            let candles = [
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' },
+                { close: '2' }
+            ];
+            let result = Candle.avgPrice(candles);
+            expect(result).to.equal(2);
+        });
+
         it('return undefined on empty array', () => {
             let result = Candle.avgPrice([]);
             expect(result).to.equal(undefined);

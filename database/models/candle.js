@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         if (candles.length === 0) {
             return undefined;
         }
-        let prices = candles.map(candle => candle.close);
+        let prices = candles.map(candle => Number(candle.close));
         let sum = prices.reduce((prev, curr) => prev + curr, 0);
         return sum / candles.length;
     };
