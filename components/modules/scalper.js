@@ -31,11 +31,6 @@ class Scalper extends Trader {
                 action: this.work,
                 interval: 60 * 1000,
                 title: 'Scalper trading strategy'
-            },
-            {
-                action: this.checkOpenedOrders,
-                interval: 10 * 1000,
-                title: 'Checking order status'
             }
         ];
     }

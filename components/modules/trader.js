@@ -42,11 +42,6 @@ class Trader extends BBModule {
                 action: this.work,
                 interval: 60 * 1000,
                 title: 'Main trading strategy'
-            },
-            {
-                action: this.checkOpenedOrders,
-                interval: 10 * 1000,
-                title: 'Checking order status'
             }
         ];
     }
@@ -297,25 +292,6 @@ class Trader extends BBModule {
                 }
             } catch (error) {
                 this.bb.log.error(error);
-            }
-        }
-    }
-
-    /**
-     * Checking status of opened orders
-     * @returns {Promise<void>}
-     */
-    async checkOpenedOrders() {
-        let orders = await Order.findAll({where: {closed: 0}});
-        let prices = await this.bb.api.prices();
-        for (let order of orders) {
-            let currentPrice = Number(prices[order.symbol]);
-            if (currentPrice >= order.takeProfit) {
-                order.update({success: true, closed: true})
-                    .catch(err => this.bb.log.error(err));
-            } else if (currentPrice <= order.stopLoss) {
-                order.update({success: false, closed: true})
-                    .catch(err => this.bb.log.error(err));
             }
         }
     }
