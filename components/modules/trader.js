@@ -73,7 +73,7 @@ class Trader extends BBModule {
             stopLoss: stopLoss.toFixed(PRECISION_PRICE),
             symbol,
             mark,
-            ratio: ratio.toFixed(PRECISION_QUANTITY)
+            ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
         return Order.create(order);
     }
