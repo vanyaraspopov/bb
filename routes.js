@@ -140,6 +140,22 @@ module.exports = (app) => {
             });
     });
 
+    //  Delete all parameters of module with :id
+    app.delete(API_URI + '/modules/:id/params', loadUser, (request, response) => {
+        let id = request.params.id;
+        ModuleParameters
+            .destroy({
+                where: {
+                    module_id: id
+                }
+            })
+            .then(() => response.send(true))
+            .catch(err => {
+                bb.log.error(err);
+                response.send(err)
+            });
+    });
+
     /**
      * Symbols
      */
