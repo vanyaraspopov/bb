@@ -6,7 +6,7 @@ const utils = require('./components/utils/utils');
 
 //  Modules
 const DataCollector = require('./components/modules/data-collector');
-const Trader = require('./components/modules/trader');
+const Pumper = require('./components/modules/pumper');
 const Scalper = require('./components/modules/scalper');
 const PriceWatcher = require('./components/modules/price-watcher');
 
@@ -39,7 +39,7 @@ let bb = {
 };
 
 bb.components.dataCollector = new DataCollector(bb);
-bb.components.trader = new Trader(bb);
+bb.components.pumper = new Pumper(bb);
 bb.components.scalper = new Scalper(bb);
 bb.components.priceWatcher = new PriceWatcher(bb);
 

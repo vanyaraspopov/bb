@@ -2,10 +2,10 @@ const assert = require('chai').assert;
 const expect = require('chai').expect;
 const moment = require('moment');
 
-const Trader = require('../components/modules/trader');
+const Pumper = require('../components/modules/pumper');
 
 const bb = require('../binance-bot');
-const trader = bb.components.trader;
+const pumper = bb.components.pumper;
 
 describe('bb.trader', () => {
 
@@ -25,7 +25,7 @@ describe('bb.trader', () => {
                 {quantity: 2},
                 {quantity: 2}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(11 / 6);
         });
 
@@ -42,7 +42,7 @@ describe('bb.trader', () => {
                 {quantity: 2},
                 {quantity: 2}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(2);
         });
 
@@ -59,7 +59,7 @@ describe('bb.trader', () => {
                 {quantity: 1},
                 {quantity: 1}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(0.5);
         });
 
@@ -77,7 +77,7 @@ describe('bb.trader', () => {
                 {quantity: '2'},
                 {quantity: '2'}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(11 / 6);
         });
 
@@ -94,7 +94,7 @@ describe('bb.trader', () => {
                 {quantity: '2'},
                 {quantity: '2'}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(9 / 6);
         });
 
@@ -111,7 +111,7 @@ describe('bb.trader', () => {
                 {quantity: '1'},
                 {quantity: '1'}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(6 / 9);
         });
 
@@ -358,13 +358,13 @@ describe('bb.trader', () => {
                     "timeFormat": "201804030959"
                 }
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(2790321 / 612525);
         });
 
         it('should throw an error on empty array', () => {
             assert.throws(() => {
-                Trader.compareTradesQuantity([]);
+                Pumper.compareTradesQuantity([]);
             }, Error, "Array of trades shouldn't be empty");
         });
 
@@ -373,7 +373,7 @@ describe('bb.trader', () => {
                 {quantity: 0},
                 {quantity: 1}
             ];
-            let result = Trader.compareTradesQuantity(trades);
+            let result = Pumper.compareTradesQuantity(trades);
             expect(result).to.equal(Number.POSITIVE_INFINITY);
         });
 
@@ -395,7 +395,7 @@ describe('bb.trader', () => {
                 {close: 2},
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(true);
         });
 
@@ -413,7 +413,7 @@ describe('bb.trader', () => {
                 {close: 1},
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -431,7 +431,7 @@ describe('bb.trader', () => {
                 {close: 2},
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -449,7 +449,7 @@ describe('bb.trader', () => {
                 {close: '4'},
                 {close: '2'}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(true);
         });
 
@@ -467,7 +467,7 @@ describe('bb.trader', () => {
                 {close: '1'},
                 {close: '2'}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -485,7 +485,7 @@ describe('bb.trader', () => {
                 {close: '2'},
                 {close: '2'}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -495,7 +495,7 @@ describe('bb.trader', () => {
                 {close: 100},
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -505,7 +505,7 @@ describe('bb.trader', () => {
                 {close: 100},
                 {close: 1}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -515,12 +515,12 @@ describe('bb.trader', () => {
                 {close: 100},
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(true);
         });
 
         it('return false on empty array', () => {
-            let result = Trader.comparePrices([]);
+            let result = Pumper.comparePrices([]);
             expect(result).to.equal(false);
         });
 
@@ -528,7 +528,7 @@ describe('bb.trader', () => {
             let candles = [
                 {close: 2}
             ];
-            let result = Trader.comparePrices(candles);
+            let result = Pumper.comparePrices(candles);
             expect(result).to.equal(false);
         });
 
@@ -780,7 +780,7 @@ describe('bb.trader', () => {
                     "timeFormat": "201804031000"
                 }
             ];
-            let result = await trader.getLastTrades('ZILBTC', 30, time);
+            let result = await pumper.getLastTrades('ZILBTC', 30, time);
             let values = result.map(t => t.dataValues);
             expect(values).to.deep.equal(trades);
         });
@@ -1487,7 +1487,7 @@ describe('bb.trader', () => {
             let params = {
                 buy: {value: 5}
             };
-            let result = Trader.haveToBuy(trades, candles, params);
+            let result = Pumper.haveToBuy(trades, candles, params);
             expect(result).to.equal(false);
         });
 

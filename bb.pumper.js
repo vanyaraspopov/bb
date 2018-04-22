@@ -1,2 +1,2 @@
 const bb = require('./binance-bot');
-bb.components.trader.run();
+bb.components.pumper.run();

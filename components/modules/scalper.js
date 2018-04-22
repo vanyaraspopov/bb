@@ -1,5 +1,4 @@
 const db = require('../../database/db');
-const moment = require('moment');
 
 //  Models
 const Candle = db.sequelize.models['Candle'];
