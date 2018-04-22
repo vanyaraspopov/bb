@@ -15,7 +15,7 @@ class PriceWatcher extends BBModule {
     get tasks() {
         return [
             {
-                action: this.checkOpenedOrders,
+                action: this.checkActiveTrades,
                 interval: 10 * 1000,
                 title: 'Checking order status'
             }
@@ -26,17 +26,17 @@ class PriceWatcher extends BBModule {
      * Checking status of opened orders
      * @returns {Promise<void>}
      */
-    async checkOpenedOrders() {
-        const Order = this.bb.models['order'];
-        let orders = await Order.findAll({where: {closed: 0}});
+    async checkActiveTrades() {
+        const Trade = this.bb.models['Trade'];
+        let trades = await Trade.findAll({where: {closed: 0}});
         let prices = await this.bb.api.prices();
-        for (let order of orders) {
-            let currentPrice = Number(prices[order.symbol]);
-            if (currentPrice >= order.takeProfit) {
-                order.update({success: true, closed: true})
+        for (let trade of trades) {
+            let currentPrice = Number(prices[trade.symbol]);
+            if (currentPrice >= trade.takeProfit) {
+                trade.update({success: true, closed: true})
                     .catch(err => this.bb.log.error(err));
-            } else if (currentPrice <= order.stopLoss) {
-                order.update({success: false, closed: true})
+            } else if (currentPrice <= trade.stopLoss) {
+                trade.update({success: false, closed: true})
                     .catch(err => this.bb.log.error(err));
             }
         }

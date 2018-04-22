@@ -5,7 +5,7 @@ const moment = require('moment');
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
-const Order = db.sequelize.models['order'];
+const Trade = db.sequelize.models['Trade'];
 
 const PRECISION_QUANTITY = 8;
 const PRECISION_PRICE = 8;
@@ -63,7 +63,7 @@ class Trader extends BBModule {
             mark,
             ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
-        return Order.create(order);
+        return Trade.create(order);
     }
 
     /**
@@ -139,8 +139,8 @@ class Trader extends BBModule {
      * @returns {Promise<boolean>}
      */
     static async previousOrdersClosed(symbol, mark = 'trader') {
-        let orders = await Order.findAll({where: {symbol, mark, closed: 0}});
-        return orders.length === 0;
+        let trades = await Trade.findAll({where: {symbol, mark, closed: 0}});
+        return trades.length === 0;
     }
 }
 

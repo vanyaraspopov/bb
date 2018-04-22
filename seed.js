@@ -620,8 +620,8 @@ let modules = [
     },
     {
         "id": 2,
-        "title": "Торговля",
-        "pm2_name": "bb.trader"
+        "title": "Пампер",
+        "pm2_name": "bb.pumper"
     },
     {
         "id": 3,

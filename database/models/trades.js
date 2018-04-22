@@ -1,6 +1,6 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
-    let order = sequelize.define('order', {
+    let Trade = sequelize.define('Trade', {
         price: DataTypes.DECIMAL,
         quantity: DataTypes.DECIMAL,
         takeProfit: DataTypes.DECIMAL,
@@ -12,9 +12,11 @@ module.exports = (sequelize, DataTypes) => {
         success: DataTypes.BOOLEAN,
         mark: DataTypes.STRING,
         ratio: DataTypes.DECIMAL
-    }, {});
-    order.associate = function (models) {
+    }, {
+        tableName: 'trades',
+    });
+    Trade.associate = function (models) {
         // associations can be defined here
     };
-    return order;
+    return Trade;
 };
