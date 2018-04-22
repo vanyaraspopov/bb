@@ -19,6 +19,11 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'cascade',
             hooks: true
         });
+        models.Symb.hasMany(models.Order, {
+            foreignKey: 'symbol_id',
+            as: 'orders',
+            hooks: true
+        });
     };
 
     return Symb;

@@ -16,7 +16,11 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'trades',
     });
     Trade.associate = function (models) {
-        // associations can be defined here
+        models.Trade.hasMany(models.Order, {
+            foreignKey: 'trade_id',
+            as: 'orders',
+            hooks: true
+        });
     };
     return Trade;
 };

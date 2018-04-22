@@ -28,7 +28,9 @@ class Trader extends BBModule {
      */
     get module() {
         return {
-            id: 0
+            id: 0,
+            title: 'Трейдер',
+            pm2_name: '',
         }
     }
 
