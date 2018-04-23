@@ -9,8 +9,6 @@ const utils = require('./components/utils/utils');
 const DataCollector = require('./components/modules/data-collector');
 const Pumper = require('./components/modules/pumper');
 const Scalper = require('./components/modules/scalper');
-const OrderManager = require('./components/modules/order-manager');
-const PriceWatcher = require('./components/modules/price-watcher');
 
 let bb = {
     config,
@@ -52,8 +50,6 @@ let bb = {
      * Starts modules in defined order
      */
     startModules() {
-        bb.modules['bb.price-watcher'].run();
-
         let second = moment().second();
         if (second > 0 && second < 20) {
             this.startDataCollector();
@@ -78,9 +74,5 @@ let bb = {
 bb.registerModule(new DataCollector(bb));
 bb.registerModule(new Pumper(bb));
 bb.registerModule(new Scalper(bb));
-//bb.registerModule(new OrderManager(bb));
-bb.registerModule(new PriceWatcher(bb));
-
-bb.startModules();
 
 module.exports = bb;

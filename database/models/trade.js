@@ -1,6 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
     let Trade = sequelize.define('Trade', {
+        module_id: DataTypes.INTEGER,
         price: DataTypes.DECIMAL,
         quantity: DataTypes.DECIMAL,
         takeProfit: DataTypes.DECIMAL,
@@ -20,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: 'trade_id',
             as: 'orders',
             hooks: true
+        });
+        models.Trade.belongsTo(models.Module, {
+            foreignKey: 'module_id',
+            as: 'module'
         });
     };
     return Trade;

@@ -13,6 +13,11 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'cascade',
             hooks: true
         });
+        models.Module.hasMany(models.Trade, {
+            foreignKey: 'module_id',
+            as: 'trades',
+            hooks: true
+        });
     };
 
     return Module;

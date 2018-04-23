@@ -36,6 +36,11 @@ class Pumper extends Trader {
                 action: this.work,
                 interval: 60 * 1000,
                 title: 'Pumper trading strategy'
+            },
+            {
+                action: this.checkActiveTrades,
+                interval: 15 * 1000,
+                title: 'Checking trades'
             }
         ];
     }

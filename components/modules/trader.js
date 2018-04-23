@@ -50,11 +50,12 @@ class Trader extends BBModule {
      * @param stopLoss
      * @param mark that points component creating an order
      * @param ratio last volumes ratio
-     * @returns {order}
+     * @returns {*}
      */
     buy(symbol, price, quantity, takeProfit, stopLoss, mark = 'trader', ratio = null) {
         let time = moment();
-        let order = {
+        let trade = {
+            module_id: this.module.id,
             price,
             time: moment(time).unix() * 1000,
             timeFormat: moment(time).utc().format(this.bb.config.moment.format),
@@ -65,7 +66,51 @@ class Trader extends BBModule {
             mark,
             ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
-        return Trade.create(order);
+        return Trade.create(trade);
+    }
+
+    /**
+     * Checking status of opened orders
+     * @returns {Promise<void>}
+     */
+    async checkActiveTrades() {
+        if (this.bb.config['binance'].test) {
+            return this.checkActiveTradesByPrices();
+        } else {
+            return this.checkActiveTradesByOrders();
+        }
+    }
+
+    /**
+     * Check prices and manage trades: set closed, success, etc.
+     * For test mode.
+     * @returns {Promise<void>}
+     */
+    async checkActiveTradesByPrices() {
+        const Trade = this.bb.models['Trade'];
+        let trades = await Trade.findAll({
+            where: {
+                [Op.and]: [
+                    {[Op.or]: [{module_id: 0}, {module_id: this.module.id}]},
+                    {closed: 0}
+                ]
+            }
+        });
+        let prices = await this.bb.api.prices();
+        for (let trade of trades) {
+            let currentPrice = Number(prices[trade.symbol]);
+            if (currentPrice >= trade.takeProfit) {
+                trade.update({success: true, closed: true})
+                    .catch(err => this.bb.log.error(err));
+            } else if (currentPrice <= trade.stopLoss) {
+                trade.update({success: false, closed: true})
+                    .catch(err => this.bb.log.error(err));
+            }
+        }
+    }
+
+    async checkActiveTradesByOrders() {
+        //TODO:checking trades' statuses by watching orders
     }
 
     /**
@@ -143,6 +188,53 @@ class Trader extends BBModule {
     static async previousOrdersClosed(symbol, mark = 'trader') {
         let trades = await Trade.findAll({where: {symbol, mark, closed: 0}});
         return trades.length === 0;
+    }
+
+    //  Order management
+
+
+    async cancelOrder(order) {
+        if (order.symbol == null) {
+            order = await Order.findById(order.id, {include: ['symbol']});
+        }
+        try {
+            let symbol = order.symbol.symbol;
+            let orderId = order.exchange_order_id;
+            let result = await this.bb.api.cancelOrder({symbol, orderId});
+        } catch (err) {
+            this.bb.log.error(err);
+        }
+    }
+
+    /**
+     * Creates order on exchange
+     * @param trade
+     * @param symbol
+     * @param options
+     * @returns {void|Promise<*>}
+     */
+    async createOrder(trade, symbol, options) {
+        if (this.bb.config['binance'].test) {
+            return;
+        }
+        try {
+            let exchangeOrder = await this.bb.api.order(options);
+            let orderData = {
+                exchange_order_id: exchangeOrder.orderId,
+                trade_id: trade.id,
+                symbol_id: symbol.id,
+                side: exchangeOrder.side,
+                type: exchangeOrder.type,
+                status: exchangeOrder.status,
+                origQty: Number(exchangeOrder.origQty),
+                executedQty: Number(exchangeOrder.executedQty),
+                price: Number(exchangeOrder.price),
+                time: exchangeOrder.transactTime
+            };
+            return Order.create(orderData);
+        } catch (err) {
+            this.bb.log.error(err);
+        }
     }
 }
 
