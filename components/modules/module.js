@@ -85,18 +85,20 @@ class BBModule {
      * Run tasks defined in "tasks" method
      */
     run() {
-        let context = this;
-        let tasks = this.tasks;
-        for (let task of tasks) {
-            let interval = Number(task.interval || 0);
-            let delay = Number(task.delay || 0);
-            let action = () => task.action.call(context, interval);
-            if (interval > 0) {
-                this._taskIntervals.push(
-                    setInterval(action, interval)
-                );
+        if (!this.isActive) {
+            let context = this;
+            let tasks = this.tasks;
+            for (let task of tasks) {
+                let interval = Number(task.interval || 0);
+                let delay = Number(task.delay || 0);
+                let action = () => task.action.call(context, interval);
+                if (interval > 0) {
+                    this._taskIntervals.push(
+                        setInterval(action, interval)
+                    );
+                }
+                setTimeout(action, delay);
             }
-            setTimeout(action, delay);
         }
     }
 
