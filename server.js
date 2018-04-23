@@ -6,6 +6,11 @@ const routes = require('./routes');
 const session = require('express-session');
 
 let app = express();
+
+//  set binance bot as property of express.js app
+const bb = require('./binance-bot');
+app.bb = bb;
+
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
 

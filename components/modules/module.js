@@ -7,6 +7,7 @@ class BBModule {
     constructor(bb) {
         this.bb = bb;
         this._params = undefined;
+        this._taskIntervals = [];
     }
 
     /**
@@ -18,6 +19,14 @@ class BBModule {
             let params = await this.params;
             return params.filter(p => p.active);
         })();
+    }
+
+    /**
+     * True if module has running tasks
+     * @returns {boolean}
+     */
+    get isActive() {
+        return this._taskIntervals.length !== 0;
     }
 
     /**
@@ -83,10 +92,22 @@ class BBModule {
             let delay = Number(task.delay || 0);
             let action = () => task.action.call(context, interval);
             if (interval > 0) {
-                setInterval(action, interval);
+                this._taskIntervals.push(
+                    setInterval(action, interval)
+                );
             }
             setTimeout(action, delay);
         }
+    }
+
+    /**
+     * Stop all tasks
+     */
+    stop() {
+        for (let taskInterval of this._taskIntervals) {
+            clearInterval(taskInterval);
+        }
+        this._taskIntervals = [];
     }
 }
 

@@ -1,16 +1,17 @@
-const bb = require('./binance-bot');
-const config = bb.config;
-const db = bb.components.db;
 const pm2 = require('pm2');
 
-//  Models
-const Currency = db.sequelize.models['Currency'];
-const Module = db.sequelize.models['Module'];
-const ModuleParameters = db.sequelize.models['ModuleParameters'];
-const Symb = db.sequelize.models['Symb'];
-const User = db.sequelize.models['User'];
-
 module.exports = (app) => {
+
+    const bb = app.bb;
+    const config = bb.config;
+    const db = bb.components.db;
+
+    //  Models
+    const Currency = db.sequelize.models['Currency'];
+    const Module = db.sequelize.models['Module'];
+    const ModuleParameters = db.sequelize.models['ModuleParameters'];
+    const Symb = db.sequelize.models['Symb'];
+    const User = db.sequelize.models['User'];
 
     const API_URI = '/api';
 
@@ -18,73 +19,30 @@ module.exports = (app) => {
      * Modules
      */
     app.get(API_URI + "/modules", loadUser, (request, response) => {
-        connectToPm2ThenDo(
-            () => {
-                return Module
-                    .findAll({
-                        include: [
-                            {
-                                association: 'params',
-                                include: ['symbol']
-                            }
-                        ]
-                    })
-                    .then(modules => {
-                        pm2.list((err, processList) => {
-                            if (err) {
-                                response.send(err);
-                            }
-                            let processes = {};
-                            for (let m of modules) {
-                                processes[m.pm2_name] = m.dataValues;
-                                processes[m.pm2_name].status = null;
-                            }
-                            for (let p of processList) {
-                                if (processes.hasOwnProperty(p.name)) {
-                                    processes[p.name].status = p.pm2_env.status;
-                                }
-
-                            }
-                            pm2.disconnect();
-                            response.send(processes);
-                        });
-                    })
-                    .catch(err => response.send(err));
-            },
-            err => response.send(err)
-        );
+        return (async() => {
+            let modules = bb.modules;
+            let processes = {};
+            for (let key in modules) {
+                if (modules.hasOwnProperty(key)) {
+                    processes[key] = modules[key].module;
+                    processes[key].params = await modules[key].params;
+                    processes[key].status = modules[key].isActive ? 'online' : 'stopped';
+                }
+            }
+            response.send(processes);
+        })();
     });
 
     app.get(API_URI + "/modules/start/:name", loadUser, (request, response) => {
-        connectToPm2ThenDo(
-            () => {
-                let script = `./${request.params.name}.js`;
-                pm2.start(
-                    script,
-                    (err, apps) => {
-                        pm2.disconnect();
-                        if (err) response.send(err);
-                        else response.send(apps);
-                    })
-            },
-            err => response.send(err)
-        );
+        let key = request.params.name;
+        bb.modules[key].run();
+        response.send(bb.modules[key].isActive);
     });
 
     app.get(API_URI + "/modules/stop/:name", loadUser, (request, response) => {
-        connectToPm2ThenDo(
-            () => {
-                let script = request.params.name;
-                pm2.stop(
-                    script,
-                    (err, proc) => {
-                        pm2.disconnect();
-                        if (err) response.send(err);
-                        else response.send(proc);
-                    })
-            },
-            err => response.send(err)
-        );
+        let key = request.params.name;
+        bb.modules[key].stop();
+        response.send(!bb.modules[key].isActive);
     });
 
     app.get(API_URI + "/modules/params/:module_id", loadUser, (request, response) => {
