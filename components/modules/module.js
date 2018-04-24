@@ -6,7 +6,7 @@ const ModuleParameters = db.sequelize.models['ModuleParameters'];
 class BBModule {
     constructor(bb) {
         this.bb = bb;
-        this._taskIntervals = [];
+        this._taskIntervals = {};
     }
 
     /**
@@ -25,7 +25,7 @@ class BBModule {
      * @returns {boolean}
      */
     get isActive() {
-        return this._taskIntervals.length !== 0;
+        return Object.keys(this._taskIntervals).length !== 0;
     }
 
     /**
@@ -64,6 +64,7 @@ class BBModule {
     get tasks() {
         return [
             {
+                key: 'example',         //  Key used for identification in the task list
                 action: (interval) => {
                     console.log(`I'm running every ${interval} microseconds`);
                 },
@@ -78,31 +79,49 @@ class BBModule {
      * Run tasks defined in "tasks" method
      */
     run() {
-        if (!this.isActive) {
-            let context = this;
-            let tasks = this.tasks;
-            for (let task of tasks) {
-                let interval = Number(task.interval || 0);
-                let delay = Number(task.delay || 0);
-                let action = () => task.action.call(context, interval);
-                if (interval > 0) {
-                    this._taskIntervals.push(
-                        setInterval(action, interval)
-                    );
-                }
-                setTimeout(action, delay);
-            }
+        for (let task of this.tasks) {
+            this.runTask(task);
         }
+    }
+
+    /**
+     * Run separate task
+     * @param task
+     */
+    runTask(task) {
+        let context = this;
+        if (this._taskIntervals.hasOwnProperty(task.key)) {
+            return;
+        }
+        let interval = Number(task.interval || 0);
+        let delay = Number(task.delay || 0);
+        let action = () => task.action.call(context, interval);
+        if (interval > 0) {
+            setTimeout(() => {
+                this._taskIntervals[task.key] = setInterval(action, interval);
+            }, delay);
+        }
+        setTimeout(action, delay);
     }
 
     /**
      * Stop all tasks
      */
     stop() {
-        for (let taskInterval of this._taskIntervals) {
-            clearInterval(taskInterval);
+        for (let key in this._taskIntervals) {
+            this.stopTask(key);
         }
-        this._taskIntervals = [];
+    }
+
+    /**
+     * Stop separate task by key
+     * @param key
+     */
+    stopTask(key) {
+        if (this._taskIntervals.hasOwnProperty(key)) {
+            clearInterval(this._taskIntervals[key]);
+            delete this._taskIntervals[key];
+        }
     }
 }
 

@@ -27,11 +27,13 @@ class Scalper extends Trader {
     get tasks() {
         return [
             {
+                key: 'scalper_work',
                 action: this.work,
                 interval: 60 * 1000,
                 title: 'Scalper trading strategy'
             },
             {
+                key: 'scalper_check',
                 action: this.checkActiveTrades,
                 interval: 15 * 1000,
                 title: 'Checking trades'

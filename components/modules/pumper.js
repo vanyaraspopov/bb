@@ -33,11 +33,13 @@ class Pumper extends Trader {
     get tasks() {
         return [
             {
+                key: 'pumper_work',
                 action: this.work,
                 interval: 60 * 1000,
                 title: 'Pumper trading strategy'
             },
             {
+                key: 'pumper_check',
                 action: this.checkActiveTrades,
                 interval: 15 * 1000,
                 title: 'Checking trades'
