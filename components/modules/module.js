@@ -6,7 +6,6 @@ const ModuleParameters = db.sequelize.models['ModuleParameters'];
 class BBModule {
     constructor(bb) {
         this.bb = bb;
-        this._params = undefined;
         this._taskIntervals = [];
     }
 
@@ -35,11 +34,7 @@ class BBModule {
      */
     get params() {
         return (async () => {
-            if (this._params !== undefined) {
-                return this._params;
-            }
-
-            this._params = ModuleParameters
+            return ModuleParameters
                 .findAll({
                     where: {
                         module_id: this.module.id
@@ -47,8 +42,6 @@ class BBModule {
                     include: ['symbol']
                 })
                 .catch(err => this.bb.log.error(err));
-
-            return this._params;
         })();
     }
 

@@ -204,7 +204,7 @@ class DataCollector extends BBModule {
     async collectCandles(interval) {
         let time = moment();
 
-        let minutes = Math.round(interval / 60 / 1000) * 30;
+        let minutes = Math.round(interval / 60 / 1000) * 60;
         let lastMinutes = [];
         for (let i = 0; i < minutes; i++) {
             let prevMinute = moment(time).subtract(i + 1, 'minutes');

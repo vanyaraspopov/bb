@@ -57,7 +57,7 @@ let bb = {
         } else {
             let timeout = Math.abs(60 - second + 5);
             setTimeout(this.startDataCollector, timeout * 1000);
-            setTimeout(this.startTradingModules, timeout + 30 * 1000);
+            setTimeout(this.startTradingModules, (timeout + 30) * 1000);
         }
     },
 
