@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
         trade_id: DataTypes.INTEGER,
         symbol_id: DataTypes.INTEGER,
         exchange_order_id: DataTypes.INTEGER,
+        symbol: DataTypes.STRING,
         side: DataTypes.STRING,
         type: DataTypes.STRING,
         status: DataTypes.STRING,
@@ -22,11 +23,9 @@ module.exports = (sequelize, DataTypes) => {
         });
         models.Order.belongsTo(models.Symb, {
             foreignKey: 'symbol_id',
-            as: 'symbol'
+            as: 'symb'
         });
     };
-
-
 
     return Order;
 };
