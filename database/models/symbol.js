@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         tableName: 'symbols',
         getterMethods: {
             symbol() {
-                return this.quot + this.base;
+                return this.base + this.quot;
             }
         }
     });

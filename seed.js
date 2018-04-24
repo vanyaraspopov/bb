@@ -9,603 +9,603 @@ const ModuleParameters = bb.models['ModuleParameters'];
 let symbols = [
     {
         "id": 1,
-        "quot": "DASH",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "DASH"
     },
     {
         "id": 2,
-        "quot": "WAVES",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WAVES"
     },
     {
         "id": 3,
-        "quot": "ZIL",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ZIL"
     },
     {
         "id": 4,
-        "quot": "EOS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "EOS"
     },
     {
         "id": 5,
-        "quot": "XMR",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XMR"
     },
     {
         "id": 6,
-        "quot": "MTL",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MTL"
     },
     {
         "id": 7,
-        "quot": "VEN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "VEN"
     },
     {
         "id": 8,
-        "quot": "LSK",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LSK"
     },
     {
         "id": 9,
-        "quot": "SUB",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SUB"
     },
     {
         "id": 10,
-        "quot": "ADA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ADA"
     },
     {
         "id": 11,
-        "quot": "XVG",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XVG"
     },
     {
         "id": 12,
-        "quot": "ZEC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ZEC"
     },
     {
         "id": 13,
-        "quot": "STRAT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "STRAT"
     },
     {
         "id": 15,
-        "quot": "GAS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "GAS"
     },
     {
         "id": 16,
-        "quot": "XRP",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XRP"
     },
     {
         "id": 20,
-        "quot": "TRX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "TRX"
     },
     {
         "id": 21,
-        "quot": "ONT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ONT"
     },
     {
         "id": 22,
-        "quot": "ETH",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ETH"
     },
     {
         "id": 23,
-        "quot": "NEO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NEO"
     },
     {
         "id": 24,
-        "quot": "BNB",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BNB"
     },
     {
         "id": 25,
-        "quot": "ICX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ICX"
     },
     {
         "id": 26,
-        "quot": "IOST",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "IOST"
     },
     {
         "id": 27,
-        "quot": "ELF",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ELF"
     },
     {
         "id": 28,
-        "quot": "WAN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WAN"
     },
     {
         "id": 29,
-        "quot": "BCC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BCC"
     },
     {
         "id": 30,
-        "quot": "XLM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XLM"
     },
     {
         "id": 31,
-        "quot": "IOTA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "IOTA"
     },
     {
         "id": 32,
-        "quot": "QSP",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "QSP"
     },
     {
         "id": 33,
-        "quot": "NCASH",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NCASH"
     },
     {
         "id": 34,
-        "quot": "NEBL",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NEBL"
     },
     {
         "id": 35,
-        "quot": "AION",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "AION"
     },
     {
         "id": 36,
-        "quot": "GVT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "GVT"
     },
     {
         "id": 37,
-        "quot": "QTUM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "QTUM"
     },
     {
         "id": 38,
-        "quot": "DNT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "DNT"
     },
     {
         "id": 39,
-        "quot": "DGD",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "DGD"
     },
     {
         "id": 40,
-        "quot": "NANO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NANO"
     },
     {
         "id": 41,
-        "quot": "ENJ",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ENJ"
     },
     {
         "id": 42,
-        "quot": "LINK",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LINK"
     },
     {
         "id": 43,
-        "quot": "POA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "POA"
     },
     {
         "id": 44,
-        "quot": "STORM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "STORM"
     },
     {
         "id": 45,
-        "quot": "EDO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "EDO"
     },
     {
         "id": 46,
-        "quot": "LTC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LTC"
     },
     {
         "id": 47,
-        "quot": "OMG",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "OMG"
     },
     {
         "id": 48,
-        "quot": "SNT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SNT"
     },
     {
         "id": 49,
-        "quot": "ETC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ETC"
     },
     {
         "id": 50,
-        "quot": "NULS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NULS"
     },
     {
         "id": 51,
-        "quot": "SALT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SALT"
     },
     {
         "id": 52,
-        "quot": "RCN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "RCN"
     },
     {
         "id": 53,
-        "quot": "QLC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "QLC"
     },
     {
         "id": 54,
-        "quot": "BQX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BQX"
     },
     {
         "id": 55,
-        "quot": "TRIG",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "TRIG"
     },
     {
         "id": 56,
-        "quot": "POWR",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "POWR"
     },
     {
         "id": 57,
-        "quot": "MCO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MCO"
     },
     {
         "id": 58,
-        "quot": "BCPT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BCPT"
     },
     {
         "id": 59,
-        "quot": "CMT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "CMT"
     },
     {
         "id": 60,
-        "quot": "ENG",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ENG"
     },
     {
         "id": 61,
-        "quot": "WTC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WTC"
     },
     {
         "id": 62,
-        "quot": "BTG",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BTG"
     },
     {
         "id": 63,
-        "quot": "MANA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MANA"
     },
     {
         "id": 64,
-        "quot": "VIB",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "VIB"
     },
     {
         "id": 65,
-        "quot": "LRC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LRC"
     },
     {
         "id": 66,
-        "quot": "POE",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "POE"
     },
     {
         "id": 67,
-        "quot": "NAV",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "NAV"
     },
     {
         "id": 68,
-        "quot": "ADX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ADX"
     },
     {
         "id": 69,
-        "quot": "ICN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ICN"
     },
     {
         "id": 70,
-        "quot": "RLC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "RLC"
     },
     {
         "id": 71,
-        "quot": "OST",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "OST"
     },
     {
         "id": 72,
-        "quot": "MOD",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MOD"
     },
     {
         "id": 73,
-        "quot": "AST",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "AST"
     },
     {
         "id": 74,
-        "quot": "ZRX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ZRX"
     },
     {
         "id": 75,
-        "quot": "XEM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XEM"
     },
     {
         "id": 76,
-        "quot": "PIVX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "PIVX"
     },
     {
         "id": 77,
-        "quot": "BLZ",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BLZ"
     },
     {
         "id": 78,
-        "quot": "REQ",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "REQ"
     },
     {
         "id": 79,
-        "quot": "STEEM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "STEEM"
     },
     {
         "id": 80,
-        "quot": "HSR",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "HSR"
     },
     {
         "id": 81,
-        "quot": "PPT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "PPT"
     },
     {
         "id": 82,
-        "quot": "CHAT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "CHAT"
     },
     {
         "id": 83,
-        "quot": "AE",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "AE"
     },
     {
         "id": 84,
-        "quot": "YOYO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "YOYO"
     },
     {
         "id": 85,
-        "quot": "GRS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "GRS"
     },
     {
         "id": 86,
-        "quot": "WPR",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WPR"
     },
     {
         "id": 87,
-        "quot": "BTS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BTS"
     },
     {
         "id": 88,
-        "quot": "RPX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "RPX"
     },
     {
         "id": 89,
-        "quot": "SNGLS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SNGLS"
     },
     {
         "id": 90,
-        "quot": "CND",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "CND"
     },
     {
         "id": 91,
-        "quot": "MTH",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MTH"
     },
     {
         "id": 92,
-        "quot": "TNB",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "TNB"
     },
     {
         "id": 93,
-        "quot": "APPC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "APPC"
     },
     {
         "id": 94,
-        "quot": "OAX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "OAX"
     },
     {
         "id": 95,
-        "quot": "MDA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "MDA"
     },
     {
         "id": 96,
-        "quot": "WINGS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WINGS"
     },
     {
         "id": 97,
-        "quot": "ARN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ARN"
     },
     {
         "id": 98,
-        "quot": "KNC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "KNC"
     },
     {
         "id": 99,
-        "quot": "DLT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "DLT"
     },
     {
         "id": 100,
-        "quot": "SYS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SYS"
     },
     {
         "id": 101,
-        "quot": "LEND",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LEND"
     },
     {
         "id": 102,
-        "quot": "GTO",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "GTO"
     },
     {
         "id": 103,
-        "quot": "EVX",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "EVX"
     },
     {
         "id": 104,
-        "quot": "BCD",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BCD"
     },
     {
         "id": 105,
-        "quot": "BAT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BAT"
     },
     {
         "id": 106,
-        "quot": "WABI",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "WABI"
     },
     {
         "id": 107,
-        "quot": "SNM",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "SNM"
     },
     {
         "id": 108,
-        "quot": "KMD",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "KMD"
     },
     {
         "id": 109,
-        "quot": "INS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "INS"
     },
     {
         "id": 110,
-        "quot": "CDT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "CDT"
     },
     {
         "id": 111,
-        "quot": "BNT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BNT"
     },
     {
         "id": 112,
-        "quot": "FUN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "FUN"
     },
     {
         "id": 113,
-        "quot": "STORJ",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "STORJ"
     },
     {
         "id": 114,
-        "quot": "VIBE",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "VIBE"
     },
     {
         "id": 115,
-        "quot": "LUN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "LUN"
     },
     {
         "id": 116,
-        "quot": "ARK",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "ARK"
     },
     {
         "id": 117,
-        "quot": "XZC",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "XZC"
     },
     {
         "id": 118,
-        "quot": "AMB",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "AMB"
     },
     {
         "id": 119,
-        "quot": "RDN",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "RDN"
     },
     {
         "id": 120,
-        "quot": "FUEL",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "FUEL"
     },
     {
         "id": 121,
-        "quot": "GXS",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "GXS"
     },
     {
         "id": 122,
-        "quot": "VIA",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "VIA"
     },
     {
         "id": 123,
-        "quot": "TNT",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "TNT"
     },
     {
         "id": 124,
-        "quot": "BRD",
-        "base": "BTC"
+        "quot": "BTC",
+        "base": "BRD"
     }
 ];
 for (let symb of symbols) {
