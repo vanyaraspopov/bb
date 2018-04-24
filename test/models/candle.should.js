@@ -1,7 +1,7 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 
-const bb = require('../binance-bot');
+const bb = require('../../binance-bot');
 const Candle = bb.models['Candle'];
 
 describe('Candle model', () => {

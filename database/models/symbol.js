@@ -51,7 +51,7 @@ module.exports = (sequelize, DataTypes) => {
      * @returns {*}
      */
     Symb.prototype.getFilter = function (key) {
-        if (this.filters instanceof String) {
+        if (typeof(this.filters) === 'string') {
             Symb.paramsToArray(this);
         }
         for (let filter of this.filters) {
@@ -81,8 +81,12 @@ module.exports = (sequelize, DataTypes) => {
         let isCorrect = true;
         isCorrect &= (price >= min);
         isCorrect &= (price <= max);
-        isCorrect &= (price % step === 0);
-        return isCorrect;
+
+        let remainder = price % step;
+        remainder = Number(remainder.toFixed(8));
+        isCorrect &= (remainder === 0);
+
+        return Boolean(isCorrect);
     };
     Symb.prototype.checkLotSize = function (quantity) {
         let filter = this.getFilter('LOT_SIZE');
@@ -92,8 +96,12 @@ module.exports = (sequelize, DataTypes) => {
         let isCorrect = true;
         isCorrect &= (quantity >= min);
         isCorrect &= (quantity <= max);
-        isCorrect &= (quantity % step === 0);
-        return isCorrect;
+
+        let remainder = quantity % step;
+        remainder = Number(remainder.toFixed(8));
+        isCorrect &= (remainder === 0);
+
+        return Boolean(isCorrect);
     };
     Symb.prototype.checkMinNotional = function (price, quantity) {
         let filter = this.getFilter('MIN_NOTIONAL');
@@ -108,9 +116,11 @@ module.exports = (sequelize, DataTypes) => {
      * @param quantity
      */
     Symb.prototype.checkFilters = function (price, quantity) {
-        this.checkPrice(price);
-        this.checkLotSize(quantity);
-        this.checkMinNotional(price, quantity);
+        let isCorrect = true;
+        isCorrect &= this.checkPrice(price);
+        isCorrect &= this.checkLotSize(quantity);
+        isCorrect &= this.checkMinNotional(price, quantity);
+        return Boolean(isCorrect);
     };
 
     Symb.hook('afterFind', Symb.paramsToArray);
