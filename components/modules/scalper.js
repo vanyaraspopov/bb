@@ -49,14 +49,14 @@ class Scalper extends Trader {
         let prices = await this.bb.api.prices();
         for (let mp of moduleParams) {
             try {
-                let symbol = mp.symbol.symbol;
+                let symbol = mp.symbol;
                 let params = JSON.parse(mp.params);
                 let period = Number(params['period'].value || 0);
-                let lastCandles = await this.getLastCandles(symbol, period);
+                let lastCandles = await this.getLastCandles(symbol.symbol, period);
                 if (Candle.checkSequence(lastCandles)) {
                     let subsidence = Number(params['subsidence'].value);
                     let avgPrice = Candle.avgPrice(lastCandles);
-                    let lastPrice = Number(prices[symbol]);
+                    let lastPrice = Number(prices[symbol.symbol]);
                     let priceToBuy = avgPrice * (1 - subsidence / 100);
                     if (lastPrice < priceToBuy) {
                         let sum = Number(params['sum'].value);
@@ -64,8 +64,8 @@ class Scalper extends Trader {
                         let sellLow = Number(params['sellLow'].value);
                         let takeProfit = priceToBuy * (1 + sellHigh / 100);
                         let stopLoss = priceToBuy * (1 - sellLow / 100);
-                        if (await Scalper.previousOrdersClosed(symbol, mark)) {
-                            await this.buy(symbol, priceToBuy, sum, takeProfit, stopLoss, mark);
+                        if (await Scalper.previousOrdersClosed(symbol.symbol, mark)) {
+                            await this.trade(symbol, priceToBuy, sum, takeProfit, stopLoss, mark);
                         }
                     }
                 } else {

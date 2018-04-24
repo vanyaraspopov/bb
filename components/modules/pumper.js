@@ -166,22 +166,22 @@ class Pumper extends Trader {
         let prices = await this.bb.api.prices();
         for (let mp of moduleParams) {
             try {
-                let symbol = mp.symbol.symbol;
+                let symbol = mp.symbol;
                 let period = this.config.period;
-                let lastTrades = await this.getLastTrades(symbol, period);
-                let lastCandles = await this.getLastCandles(symbol, period);
-                if (this._checks(symbol, lastTrades, lastCandles)) {
+                let lastTrades = await this.getLastTrades(symbol.symbol, period);
+                let lastCandles = await this.getLastCandles(symbol.symbol, period);
+                if (this._checks(symbol.symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
                     if (Pumper.haveToBuy(lastTrades, lastCandles, params)) {
                         if (await Trader.previousOrdersClosed(symbol)) {
-                            let price = prices[symbol];
+                            let price = prices[symbol.symbol];
                             let sellHigh = Number(params['sellHigh'].value);
                             let sellLow = Number(params['sellLow'].value);
                             let sum = Number(params['sum'].value);
                             let takeProfit = price * (1 + sellHigh / 100);
                             let stopLoss = price * (1 - sellLow / 100);
                             let quantityRatio = Pumper.compareTradesQuantity(lastTrades);
-                            await this.buy(symbol, price, sum, takeProfit, stopLoss, 'trader', quantityRatio);
+                            await this.trade(symbol, price, sum, takeProfit, stopLoss, 'trader', quantityRatio);
                         }
                     }
                 }

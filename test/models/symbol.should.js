@@ -17,9 +17,11 @@ describe('Symbol model', () => {
     let minPrice = 0.00000010;
     let maxPrice = 100000.00000000;
     let tickSize = 0.00000010;
+
     let minQty = 0.01000000;
     let maxQty = 90000000.00000000;
     let stepSize = 0.01000000;
+
     let minNotional = 0.00100000;
     let filters = [
         {
@@ -123,6 +125,46 @@ describe('Symbol model', () => {
             let symbol = Symb.build(testSymbolData);
             let result = symbol.checkMinNotional(minPrice, minQty);
             expect(result).to.equal(false);
+        });
+
+    });
+
+    describe('correctPrice', () => {
+
+        it('should correct correctly', () => {
+            let symbol = Symb.build(testSymbolData);
+            let incorrectPrice = (minPrice * 2 + tickSize / 2).toFixed(8);
+            let correctPrice = (minPrice * 2).toFixed(8);
+            let result = symbol.correctPrice(incorrectPrice);
+            expect(result).to.equal(correctPrice);
+        });
+
+        it('should work correctly with correct data', () => {
+            let symbol = Symb.build(testSymbolData);
+            let incorrectPrice = (minPrice * 2).toFixed(8);
+            let correctPrice = (minPrice * 2).toFixed(8);
+            let result = symbol.correctPrice(incorrectPrice);
+            expect(result).to.equal(correctPrice);
+        });
+
+    });
+
+    describe('correctQuantity', () => {
+
+        it('should correct correctly', () => {
+            let symbol = Symb.build(testSymbolData);
+            let incorrect = (minQty * 2 + stepSize / 2).toFixed(8);
+            let correct = (minQty * 2).toFixed(8);
+            let result = symbol.correctQuantity(incorrect);
+            expect(result).to.equal(correct);
+        });
+
+        it('should work correctly with correct data', () => {
+            let symbol = Symb.build(testSymbolData);
+            let incorrect = (minQty * 2).toFixed(8);
+            let correct = (minQty * 2).toFixed(8);
+            let result = symbol.correctQuantity(incorrect);
+            expect(result).to.equal(correct);
         });
 
     });

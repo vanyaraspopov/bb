@@ -73,7 +73,13 @@ module.exports = (sequelize, DataTypes) => {
         return this.orderTypes.includes(orderType);
     };
 
+    /**
+     * Check if price matches requirements
+     * @param {string} price
+     * @returns {boolean}
+     */
     Symb.prototype.checkPrice = function (price) {
+        price = Number(price);
         let filter = this.getFilter('PRICE_FILTER');
         let min = Number(filter['minPrice']);
         let max = Number(filter['maxPrice']);
@@ -88,7 +94,14 @@ module.exports = (sequelize, DataTypes) => {
 
         return Boolean(isCorrect);
     };
+
+    /**
+     * Check if quantity matches requirements
+     * @param {string} quantity
+     * @returns {boolean}
+     */
     Symb.prototype.checkLotSize = function (quantity) {
+        quantity = Number(quantity);
         let filter = this.getFilter('LOT_SIZE');
         let min = Number(filter['minQty']);
         let max = Number(filter['maxQty']);
@@ -103,7 +116,16 @@ module.exports = (sequelize, DataTypes) => {
 
         return Boolean(isCorrect);
     };
+
+    /**
+     * Check if minimal notional matches requirements
+     * @param {string} price
+     * @param {string} quantity
+     * @returns {boolean}
+     */
     Symb.prototype.checkMinNotional = function (price, quantity) {
+        price = Number(price);
+        quantity = Number(quantity);
         let filter = this.getFilter('MIN_NOTIONAL');
         let notional = price * quantity;
         let min = Number(filter['minNotional']);
@@ -112,8 +134,8 @@ module.exports = (sequelize, DataTypes) => {
 
     /**
      * Check if price and quantity pass symbol filters
-     * @param price
-     * @param quantity
+     * @param {string} price
+     * @param {string} quantity
      */
     Symb.prototype.checkFilters = function (price, quantity) {
         let isCorrect = true;
@@ -121,6 +143,38 @@ module.exports = (sequelize, DataTypes) => {
         isCorrect &= this.checkLotSize(quantity);
         isCorrect &= this.checkMinNotional(price, quantity);
         return Boolean(isCorrect);
+    };
+
+    /**
+     * Price precision correction
+     * @param {string} price
+     * @returns {string}
+     */
+    Symb.prototype.correctPrice = function (price) {
+        let _price = Number(price);
+        let filter = this.getFilter('PRICE_FILTER');
+        let step = Number(filter['tickSize']);
+        let remainder = _price % step;
+        if (Number(remainder.toFixed(8)) > 0) {
+            _price -= remainder;
+        }
+        return _price.toFixed(8);
+    };
+
+    /**
+     * Quantity precision correction
+     * @param {string} quantity
+     * @returns {string}
+     */
+    Symb.prototype.correctQuantity = function (quantity) {
+        let _quantity = Number(quantity);
+        let filter = this.getFilter('LOT_SIZE');
+        let step = Number(filter['stepSize']);
+        let remainder = _quantity % step;
+        if (Number(remainder.toFixed(8)) > 0) {
+            _quantity -= remainder;
+        }
+        return _quantity.toFixed(8);
     };
 
     Symb.hook('afterFind', Symb.paramsToArray);

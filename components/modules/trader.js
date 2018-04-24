@@ -5,6 +5,8 @@ const moment = require('moment');
 //  Models
 const AggTrade = db.sequelize.models['AggTrade'];
 const Candle = db.sequelize.models['Candle'];
+const Order = db.sequelize.models['Order'];
+const Symb = db.sequelize.models['Symb'];
 const Trade = db.sequelize.models['Trade'];
 
 const PRECISION_QUANTITY = 8;
@@ -42,31 +44,40 @@ class Trader extends BBModule {
     }
 
     /**
-     * Creates buy order
+     * Creates new trade
      * @param symbol
      * @param price
-     * @param quantity
+     * @param sum
      * @param takeProfit
      * @param stopLoss
      * @param mark that points component creating an order
      * @param ratio last volumes ratio
-     * @returns {*}
      */
-    buy(symbol, price, quantity, takeProfit, stopLoss, mark = 'trader', ratio = null) {
+    async trade(symbol, price, sum, takeProfit, stopLoss, mark = 'trader', ratio = null) {
         let time = moment();
-        let trade = {
+        let quantity = sum / price;
+        let tradeData = {
             module_id: this.module.id,
             price,
             time: moment(time).unix() * 1000,
             timeFormat: moment(time).utc().format(this.bb.config.moment.format),
-            quantity,
+            quantity: quantity.toFixed(PRECISION_QUANTITY),
             takeProfit: takeProfit.toFixed(PRECISION_PRICE),
             stopLoss: stopLoss.toFixed(PRECISION_PRICE),
-            symbol,
+            symbol: symbol.symbol,
             mark,
             ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
-        return Trade.create(trade);
+        let trade = await Trade.create(tradeData);
+        if (trade && trade.id && !this.bb.config['binance'].test) {
+            let order = await this.placeLimitOrder(trade, symbol, 'BUY', price, quantity);
+            if (order) {
+                this.trackTrade(trade, symbol, order)
+                    .catch(err => this.bb.log.error(err));
+            } else {
+                trade.destroy();
+            }
+        }
     }
 
     /**
@@ -195,10 +206,10 @@ class Trader extends BBModule {
 
     async cancelOrder(order) {
         if (order.symbol == null) {
-            order = await Order.findById(order.id, {include: ['symbol']});
+            order = await Order.findById(order.id);
         }
         try {
-            let symbol = order.symbol.symbol;
+            let symbol = order.symbol;
             let orderId = order.exchange_order_id;
             let result = await this.bb.api.cancelOrder({symbol, orderId});
         } catch (err) {
@@ -214,27 +225,157 @@ class Trader extends BBModule {
      * @returns {void|Promise<*>}
      */
     async createOrder(trade, symbol, options) {
-        if (this.bb.config['binance'].test) {
-            return;
-        }
         try {
-            let exchangeOrder = await this.bb.api.order(options);
-            let orderData = {
-                exchange_order_id: exchangeOrder.orderId,
-                trade_id: trade.id,
-                symbol_id: symbol.id,
-                side: exchangeOrder.side,
-                type: exchangeOrder.type,
-                status: exchangeOrder.status,
-                origQty: Number(exchangeOrder.origQty),
-                executedQty: Number(exchangeOrder.executedQty),
-                price: Number(exchangeOrder.price),
-                time: exchangeOrder.transactTime
-            };
-            return Order.create(orderData);
+            Trader.prepareOrderOptions(symbol, options);
+            if (Trader.validateOrderOptions(symbol, options)) {
+                let exchangeOrder = await this.bb.api.order(options);
+                if (exchangeOrder) {
+                    let orderData = {
+                        exchange_order_id: exchangeOrder.orderId,
+                        trade_id: trade.id,
+                        symbol_id: symbol.id,
+                        symbol: exchangeOrder.symbol,
+                        side: exchangeOrder.side,
+                        type: exchangeOrder.type,
+                        status: exchangeOrder.status,
+                        origQty: Number(exchangeOrder.origQty),
+                        executedQty: Number(exchangeOrder.executedQty),
+                        price: Number(exchangeOrder.price),
+                        time: exchangeOrder.transactTime
+                    };
+                    return Order.create(orderData);
+                }
+            }
         } catch (err) {
             this.bb.log.error(err);
         }
+    }
+
+    /**
+     * Creates "LIMIT" order
+     * @param {Trade} trade
+     * @param {Symb} symbol
+     * @param {string} side: "BUY" or "SELL"
+     * @param {Number} price
+     * @param {Number} quantity
+     * @returns {Promise<Order>}
+     */
+    async placeLimitOrder(trade, symbol, side, price, quantity) {
+        let options = {
+            symbol: symbol.symbol,
+            side,
+            type: 'LIMIT',
+            price,
+            quantity
+        };
+        return this.createOrder(trade, symbol, options)
+    }
+
+    /**
+     * Creates "TAKE_PROFIT_LIMIT" order
+     * @param {Trade} trade
+     * @param {Symb} symbol
+     * @param {string} side: "BUY" or "SELL"
+     * @param {Number} price
+     * @param {Number} stopPrice
+     * @param {Number} quantity
+     * @returns {Promise<Order>}
+     */
+    async placeTakeProfitOrder(trade, symbol, side, price, stopPrice, quantity) {
+        let options = {
+            symbol: symbol.symbol,
+            side,
+            type: 'TAKE_PROFIT_LIMIT',
+            price,
+            stopPrice,
+            quantity
+        };
+        return this.createOrder(trade, symbol, options)
+    }
+
+    /**
+     * Creates "STOP_LOSS_LIMIT" order
+     * @param {Trade} trade
+     * @param {Symb} symbol
+     * @param {string} side: "BUY" or "SELL"
+     * @param {Number} price
+     * @param {Number} stopPrice
+     * @param {Number} quantity
+     * @returns {Promise<Order>}
+     */
+    async placeStopLossOrder(trade, symbol, side, price, stopPrice, quantity) {
+        let options = {
+            symbol: symbol.symbol,
+            side,
+            type: 'STOP_LOSS_LIMIT',
+            price,
+            stopPrice,
+            quantity
+        };
+        return this.createOrder(trade, symbol, options)
+    }
+
+    /**
+     * Correction of numbers precision and converting to strings
+     * @param symbol
+     * @param options
+     */
+    static prepareOrderOptions(symbol, options) {
+        let quantity = Number(options.quantity);
+        if (quantity) {
+            if (!symbol.checkLotSize(quantity.toFixed(8))) {
+                options.quantity = symbol.correctQuantity(quantity.toFixed(8));
+            }
+        }
+
+        let price = options.price;
+        if (quantity) {
+            if (!symbol.checkPrice(price.toFixed(8))) {
+                options.price = symbol.correctPrice(price.toFixed(8));
+            }
+        }
+
+        let stopPrice = options.stopPrice;
+        if (stopPrice) {
+            if (!symbol.checkPrice(stopPrice.toFixed(8))) {
+                options.stopPrice = symbol.correctPrice(stopPrice.toFixed(8));
+            }
+        }
+    }
+
+    /**
+     * Validating order options
+     * @param symbol
+     * @param options
+     * @returns {boolean}
+     */
+    static validateOrderOptions(symbol, options) {
+        let isCorrect = true;
+
+        let orderType = options.type;
+        if (quantity) {
+            isCorrect &= symbol.checkOrderType(orderType);
+        }
+
+        let quantity = options.quantity;
+
+        let price = options.price;
+        if (price) {
+            isCorrect &= symbol.checkFilters(price, quantity);
+        }
+
+        let stopPrice = options.stopPrice;
+        if (stopPrice) {
+            isCorrect &= symbol.checkFilters(stopPrice, quantity);
+        }
+
+        return Boolean(isCorrect);
+    }
+
+    async trackTrade(trade, symbol, firstOrder) {
+        let stopLossOrder = await this.placeStopLossOrder(
+            trade, symbol, 'SELL',
+            trade.stopLoss, trade.stopLoss, trade.quantity);
     }
 }
 
