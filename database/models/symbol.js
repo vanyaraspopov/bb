@@ -2,7 +2,9 @@
 module.exports = (sequelize, DataTypes) => {
     let Symb = sequelize.define('Symb', {
         quot: DataTypes.STRING,
-        base: DataTypes.STRING
+        base: DataTypes.STRING,
+        orderTypes: DataTypes.JSON,
+        filters: DataTypes.JSON,
     }, {
         tableName: 'symbols',
         getterMethods: {
@@ -25,6 +27,21 @@ module.exports = (sequelize, DataTypes) => {
             hooks: true
         });
     };
+
+    let paramsToArray = function (results) {
+        let symbols = [];
+        if (!(results instanceof Array)) {
+            symbols.push(results)
+        } else {
+            symbols = results;
+        }
+        for (let symbol of symbols) {
+            symbol.orderTypes = JSON.parse(symbol.orderTypes);
+            symbol.filters = JSON.parse(symbol.filters);
+        }
+    };
+
+    Symb.hook('afterFind', paramsToArray);
 
     return Symb;
 };
