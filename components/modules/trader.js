@@ -87,8 +87,6 @@ class Trader extends BBModule {
     async checkActiveTrades() {
         if (this.bb.config['binance'].test) {
             return this.checkActiveTradesByPrices();
-        } else {
-            return this.checkActiveTradesByOrders();
         }
     }
 
@@ -98,7 +96,6 @@ class Trader extends BBModule {
      * @returns {Promise<void>}
      */
     async checkActiveTradesByPrices() {
-        const Trade = this.bb.models['Trade'];
         let trades = await Trade.findAll({
             where: {
                 [Op.and]: [
@@ -121,7 +118,19 @@ class Trader extends BBModule {
     }
 
     async checkActiveTradesByOrders() {
-        //TODO:checking trades' statuses by watching orders
+        let trades = await Trade.findAll({
+            where: {
+                [Op.and]: [
+                    {[Op.or]: [{module_id: 0}, {module_id: this.module.id}]},
+                    {closed: 0}
+                ]
+            }
+        });
+        for (let trade of trades) {
+            let order = await Order.findOne({where: {trade_id: trade.id}});
+            let symbol = await Symb.findOne({where: {id: order.symbol_id}});
+            this.trackTrade(trade, symbol, order);
+        }
     }
 
     /**
@@ -329,7 +338,7 @@ class Trader extends BBModule {
         }
 
         let price = options.price;
-        if (quantity) {
+        if (price) {
             if (!symbol.checkPrice(price.toFixed(8))) {
                 options.price = symbol.correctPrice(price.toFixed(8));
             }
@@ -353,7 +362,7 @@ class Trader extends BBModule {
         let isCorrect = true;
 
         let orderType = options.type;
-        if (quantity) {
+        if (orderType) {
             isCorrect &= symbol.checkOrderType(orderType);
         }
 
@@ -372,10 +381,103 @@ class Trader extends BBModule {
         return Boolean(isCorrect);
     }
 
+    /**
+     * Tracking trade
+     * @param {Trade} trade
+     * @param {Symb} symbol
+     * @param {Order} firstOrder
+     * @returns {Promise<void>}
+     */
     async trackTrade(trade, symbol, firstOrder) {
-        let stopLossOrder = await this.placeStopLossOrder(
-            trade, symbol, 'SELL',
-            trade.stopLoss, trade.stopLoss, trade.quantity);
+        if (firstOrder.status !== 'FILLED') {
+            let _order = await this.waitOrderStatusFilled(symbol, firstOrder);
+            await firstOrder.update({
+                status: _order.status,
+                executedQty: _order.executedQty
+            });
+        }
+        let balance = await this.bb.getBalance(symbol.base);
+
+        let cleanWatchCandlesSocket = this.bb.api.ws.candles(symbol.symbol, '1m', candle => {
+            let currentPrice = Number(candle.close);
+            let timeToTakeProfit = currentPrice >= Number(trade['takeProfit']);
+            let timeToStopLoss = currentPrice <= Number(trade['stopLoss']);
+            if (timeToTakeProfit || timeToStopLoss) {
+                this.placeLimitOrder(trade, symbol, 'SELL', currentPrice, Number(balance['free']))
+                    .then(order => {
+                        cleanWatchCandlesSocket();
+                        return this.waitOrderStatusFilled(symbol, order)
+                            .then(_order => order.update({
+                                status: _order.status,
+                                executedQty: _order.executedQty
+                            }));
+                    })
+                    .then(() => {
+                        if (timeToTakeProfit) {
+                            trade.update({success: true, closed: true});
+                        }
+                        if (timeToStopLoss) {
+                            trade.update({success: false, closed: true});
+                        }
+                    })
+                    .catch(err => this.bb.log.error(err));
+            }
+        })
+    }
+
+    /**
+     * Waiting until order status becomes for example "FILLED" or "CANCELED"
+     * @param {Symb} symbol
+     * @param {Order} order
+     * @param {string} status
+     * @returns {Promise<any>}
+     */
+    async waitOrderStatus(symbol, order, status) {
+        return new Promise((resolve, reject) => {
+            let watchOrderStatusTaskKey = 'watch_order_' + order.id + '_status';
+            let watchOrderStatusTask = {
+                key: watchOrderStatusTaskKey,
+                action: (interval) => {
+                    this.bb.api
+                        .getOrder({
+                            symbol: symbol.symbol,
+                            orderId: order.exchange_order_id
+                        })
+                        .then(_order => {
+                            if (_order.status === status) {
+                                this.stopTask(watchOrderStatusTaskKey);
+                                resolve(_order);
+                            }
+                        })
+                        .catch(err => this.bb.log.error(err));
+                },
+                interval: 3 * 1000,
+                delay: 0
+            };
+            this.runTask(watchOrderStatusTask);
+        });
+    }
+
+    /**
+     * Waiting until order status becomes "FILLED"
+     * @param {Symb} symbol
+     * @param {Order} order
+     * @param {string} order
+     * @returns {Promise<any>}
+     */
+    async waitOrderStatusFilled(symbol, order) {
+        return this.waitOrderStatus(symbol, order, 'FILLED');
+    }
+
+    /**
+     * Waiting until order status becomes "CANCELED"
+     * @param {Symb} symbol
+     * @param {Order} order
+     * @param {string} order
+     * @returns {Promise<any>}
+     */
+    async waitOrderStatusCanceled(symbol, order) {
+        return this.waitOrderStatus(symbol, order, 'CANCELED');
     }
 }
 

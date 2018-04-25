@@ -37,6 +37,12 @@ class Scalper extends Trader {
                 action: this.checkActiveTrades,
                 interval: 15 * 1000,
                 title: 'Checking trades'
+            },
+            {
+                key: 'scalper_watch_order',
+                action: this.checkActiveTradesByOrders,
+                interval: 0,
+                title: 'Watching orders'
             }
         ];
     }

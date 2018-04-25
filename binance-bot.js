@@ -38,6 +38,27 @@ let bb = {
     },
 
     /**
+     * Asks exchange for current asset balances
+     * @param asset
+     * @returns {Promise<*>}
+     */
+    async getBalance(asset = '') {
+        let info = await this.api.accountInfo();
+        let balances = {};
+        info.balances.map(b => {
+            balances[b.asset] = {
+                free: b.free,
+                locked: b.locked
+            };
+        });
+        if (asset === '') {
+            return balances;
+        } else {
+            return balances[asset];
+        }
+    },
+
+    /**
      * Aka service locator
      * @param module
      */
