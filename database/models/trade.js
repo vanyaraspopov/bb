@@ -5,6 +5,8 @@ module.exports = (sequelize, DataTypes) => {
     let Trade = sequelize.define('Trade', {
         module_id: DataTypes.INTEGER,
         price: DataTypes.DECIMAL,
+        take_profit_order_id: DataTypes.INTEGER,
+        stop_loss_order_id: DataTypes.INTEGER,
         quantity: DataTypes.DECIMAL,
         takeProfit: DataTypes.DECIMAL,
         stopLoss: DataTypes.DECIMAL,
@@ -22,6 +24,16 @@ module.exports = (sequelize, DataTypes) => {
         models.Trade.hasMany(models.Order, {
             foreignKey: 'trade_id',
             as: 'orders',
+            hooks: true
+        });
+        models.Trade.belongsTo(models.Order, {
+            foreignKey: 'take_profit_order_id',
+            as: 'TakeProfitOrder',
+            hooks: true
+        });
+        models.Trade.belongsTo(models.Order, {
+            foreignKey: 'stop_loss_order_id',
+            as: 'StopLossOrder',
             hooks: true
         });
         models.Trade.belongsTo(models.Module, {
