@@ -1,6 +1,6 @@
 {
   "name": "binance-bot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Trading binance bot",
   "main": "binance-bot.js",
   "scripts": {
