@@ -113,7 +113,7 @@ class Trader extends BBModule {
             if (timeToTakeProfit || timeToStopLoss || timeToSell) {
                 trade
                     .update({
-                        success: Number(trade.price) > currentPrice,
+                        success: Boolean(Number(trade.price) < currentPrice),
                         closed: true
                     })
                     .catch(err => this.bb.log.error(err));
@@ -419,7 +419,7 @@ class Trader extends BBModule {
                     })
                     .then(() => {
                         trade.update({
-                            success: Number(trade.price) > currentPrice,
+                            success: Boolean(Number(trade.price) < currentPrice),
                             closed: true
                         });
                     })
