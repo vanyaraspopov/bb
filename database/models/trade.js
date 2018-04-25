@@ -1,4 +1,6 @@
 'use strict';
+const moment = require('moment');
+
 module.exports = (sequelize, DataTypes) => {
     let Trade = sequelize.define('Trade', {
         module_id: DataTypes.INTEGER,
@@ -27,5 +29,16 @@ module.exports = (sequelize, DataTypes) => {
             as: 'module'
         });
     };
+
+    /**
+     * Check if trade was created more than <minutes> ago
+     * @param minutes
+     * @returns {boolean}
+     */
+    Trade.prototype.checkExpired = function (minutes) {
+        let time = moment().subtract(minutes, 'minutes').unix() * 1000;
+        return this.time <= time;
+    };
+
     return Trade;
 };

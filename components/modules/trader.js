@@ -107,11 +107,15 @@ class Trader extends BBModule {
         let prices = await this.bb.api.prices();
         for (let trade of trades) {
             let currentPrice = Number(prices[trade.symbol]);
-            if (currentPrice >= trade.takeProfit) {
-                trade.update({success: true, closed: true})
-                    .catch(err => this.bb.log.error(err));
-            } else if (currentPrice <= trade.stopLoss) {
-                trade.update({success: false, closed: true})
+            let timeToTakeProfit = currentPrice >= Number(trade['takeProfit']);
+            let timeToStopLoss = currentPrice <= Number(trade['stopLoss']);
+            let timeToSell = trade.checkExpired(30);
+            if (timeToTakeProfit || timeToStopLoss || timeToSell) {
+                trade
+                    .update({
+                        success: Number(trade.price) > currentPrice,
+                        closed: true
+                    })
                     .catch(err => this.bb.log.error(err));
             }
         }
@@ -402,7 +406,8 @@ class Trader extends BBModule {
             let currentPrice = Number(candle.close);
             let timeToTakeProfit = currentPrice >= Number(trade['takeProfit']);
             let timeToStopLoss = currentPrice <= Number(trade['stopLoss']);
-            if (timeToTakeProfit || timeToStopLoss) {
+            let timeToSell = trade.checkExpired(30);
+            if (timeToTakeProfit || timeToStopLoss || timeToSell) {
                 this.placeLimitOrder(trade, symbol, 'SELL', currentPrice, Number(balance['free']))
                     .then(order => {
                         cleanWatchCandlesSocket();
@@ -413,12 +418,10 @@ class Trader extends BBModule {
                             }));
                     })
                     .then(() => {
-                        if (timeToTakeProfit) {
-                            trade.update({success: true, closed: true});
-                        }
-                        if (timeToStopLoss) {
-                            trade.update({success: false, closed: true});
-                        }
+                        trade.update({
+                            success: Number(trade.price) > currentPrice,
+                            closed: true
+                        });
                     })
                     .catch(err => this.bb.log.error(err));
             }
