@@ -96,6 +96,9 @@ class Trader extends BBModule {
      * @returns {Promise<void>}
      */
     async checkActiveTradesByPrices() {
+        if (this.bb.config['binance'].test) {
+            return;
+        }
         let trades = await Trade.findAll({
             where: {
                 [Op.and]: [
@@ -131,9 +134,13 @@ class Trader extends BBModule {
             }
         });
         for (let trade of trades) {
-            let order = await Order.findOne({where: {trade_id: trade.id}});
-            let symbol = await Symb.findOne({where: {id: order.symbol_id}});
-            this.trackTrade(trade, symbol, order);
+            try {
+                let order = await Order.findOne({where: {trade_id: trade.id}});
+                let symbol = await Symb.findOne({where: {id: order.symbol_id}});
+                this.trackTrade(trade, symbol, order);
+            } catch (err) {
+                this.bb.log.error(err);
+            }
         }
     }
 
