@@ -17,6 +17,10 @@ module.exports = {
                 allowNull: false,
                 type: Sequelize.INTEGER
             },
+            exchange_order_id: {
+                allowNull: false,
+                type: Sequelize.INTEGER
+            },
             side: {
                 allowNull: false,
                 type: Sequelize.STRING
