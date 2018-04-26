@@ -14,7 +14,6 @@ class DataCollector extends BBModule {
 
     constructor(bb) {
         super(bb);
-        this._symbols = undefined;
     }
 
     /**
@@ -34,10 +33,6 @@ class DataCollector extends BBModule {
      */
     get symbols() {
         return (async () => {
-            if (this._symbols !== undefined) {
-                return this._symbols;
-            }
-
             let moduleParameters = await this.activeParams;
 
             let symbols = [];
@@ -45,8 +40,7 @@ class DataCollector extends BBModule {
                 symbols.push(mp.symbol.symbol);
             }
 
-            this._symbols = symbols;
-            return this._symbols;
+            return symbols;
         })();
     }
 

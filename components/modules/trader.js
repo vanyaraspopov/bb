@@ -51,7 +51,6 @@ class Trader extends BBModule {
      * @param sum
      * @param takeProfit
      * @param stopLoss
-     * @param mark that points component creating an order
      * @param ratio last volumes ratio
      */
     async trade(symbol, price, sum, takeProfit, stopLoss, ratio = null) {
@@ -88,6 +87,21 @@ class Trader extends BBModule {
     async checkActiveTrades() {
         if (this.bb.config['binance'].test) {
             return this.checkActiveTradesByPrices();
+        }
+    }
+
+    /**
+     * Deactivates module parameters which lead to failed trades.
+     * @returns {Promise<void>}
+     */
+    async deactivateFailedModuleParameters() {
+        let moduleParams = await this.activeParams;
+        for (let mp of moduleParams) {
+            let lastTradesFailed = await Trader.previousTradesFailed(mp.symbol.symbol, this.module.id, 2);
+            if (lastTradesFailed) {
+                mp.deactivate()
+                    .catch(err => this.bb.log.error(err));
+            }
         }
     }
 
@@ -225,6 +239,27 @@ class Trader extends BBModule {
             where: {symbol, module_id, closed: 0}
         });
         return trades.length === 0;
+    }
+
+    /**
+     * Checks if last <tradesCount> trades failed
+     * @param {string} symbol
+     * @param {Number} module_id
+     * @param {Number} tradesCount Number of last trades to check
+     * @returns {Promise<Boolean>}
+     */
+    static async previousTradesFailed(symbol, module_id, tradesCount = 2) {
+        let trades = await Trade.findAll({
+            where: {
+                module_id: module_id,
+                closed: 1,
+                symbol: symbol
+            },
+            limit: tradesCount,
+            order: [['id', 'DESC']]
+        });
+        if (trades.length < tradesCount) return false;
+        return trades.every(trade => !trade.success);
     }
 
     //  Order management

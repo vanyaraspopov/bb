@@ -19,6 +19,24 @@ module.exports = (sequelize, DataTypes) => {
         });
     };
 
+    /**
+     * Activates module parameters
+     * @returns {Promise<ModuleParameters>}
+     */
+    ModuleParameters.prototype.activate = function () {
+        return this.update({active: true})
+            .catch(err => this.bb.log.error(err));
+    };
+
+    /**
+     * Deactivates module parameters
+     * @returns {Promise<ModuleParameters>}
+     */
+    ModuleParameters.prototype.deactivate = function () {
+        return this.update({active: false})
+            .catch(err => this.bb.log.error(err));
+    };
+
     let paramsToString = function (mp) {
         if (typeof(mp.params) === 'object') {
             mp.params = JSON.stringify(mp.params);

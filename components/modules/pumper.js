@@ -44,6 +44,18 @@ class Pumper extends Trader {
                 action: this.checkActiveTrades,
                 interval: 15 * 1000,
                 title: 'Checking trades'
+            },
+            {
+                key: 'pumper_watch_order',
+                action: this.checkActiveTradesByOrders,
+                interval: 0,
+                title: 'Watching orders'
+            },
+            {
+                key: 'pumper_check_failed',
+                action: this.deactivateFailedModuleParameters,
+                interval: 20,
+                title: 'Checking failed trades'
             }
         ];
     }
@@ -176,7 +188,8 @@ class Pumper extends Trader {
                 if (this._checks(symbol.symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
                     if (Pumper.haveToBuy(lastTrades, lastCandles, params)) {
-                        if (await Trader.previousOrdersClosed(symbol.symbol, this.module.id)) {
+                        if (await Trader.previousOrdersClosed(symbol.symbol, this.module.id) &&
+                            !(await Trader.previousTradesFailed(symbol.symbol, this.module.id, 2))) {
                             let price = prices[symbol.symbol];
                             let sellHigh = Number(params['sellHigh'].value);
                             let sellLow = Number(params['sellLow'].value);

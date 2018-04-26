@@ -44,6 +44,12 @@ class Scalper extends Trader {
                 action: this.checkActiveTradesByOrders,
                 interval: 0,
                 title: 'Watching orders'
+            },
+            {
+                key: 'scalper_check_failed',
+                action: this.deactivateFailedModuleParameters,
+                interval: 20,
+                title: 'Checking failed trades'
             }
         ];
     }
@@ -67,7 +73,8 @@ class Scalper extends Trader {
                     let lastPrice = Number(prices[symbol.symbol]);
                     let priceToBuy = avgPrice * (1 - subsidence / 100);
                     if (lastPrice < priceToBuy) {
-                        if (await Scalper.previousOrdersClosed(symbol.symbol, this.module.id)) {
+                        if (await Scalper.previousOrdersClosed(symbol.symbol, this.module.id) &&
+                            !(await Trader.previousTradesFailed(symbol.symbol, this.module.id, 2))) {
                             let sum = Number(params['sum'].value);
                             let sellHigh = Number(params['sellHigh'].value);
                             let sellLow = Number(params['sellLow'].value);
