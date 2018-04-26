@@ -32,6 +32,7 @@ class Trader extends BBModule {
         return {
             id: 0,
             title: 'Трейдер',
+            mark: 'trader',
             pm2_name: '',
         }
     }
@@ -53,7 +54,7 @@ class Trader extends BBModule {
      * @param mark that points component creating an order
      * @param ratio last volumes ratio
      */
-    async trade(symbol, price, sum, takeProfit, stopLoss, mark = 'trader', ratio = null) {
+    async trade(symbol, price, sum, takeProfit, stopLoss, ratio = null) {
         let time = moment();
         let quantity = sum / price;
         let tradeData = {
@@ -65,7 +66,7 @@ class Trader extends BBModule {
             takeProfit: takeProfit.toFixed(PRECISION_PRICE),
             stopLoss: stopLoss.toFixed(PRECISION_PRICE),
             symbol: symbol.symbol,
-            mark,
+            mark: this.module.mark,
             ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
         let trade = await Trade.create(tradeData);
@@ -215,12 +216,14 @@ class Trader extends BBModule {
 
     /**
      * Checks if all previous orders are closed
-     * @param symbol
-     * @param mark
+     * @param {string} symbol
+     * @param {integer} module_id
      * @returns {Promise<boolean>}
      */
-    static async previousOrdersClosed(symbol, mark = 'trader') {
-        let trades = await Trade.findAll({where: {symbol, mark, closed: 0}});
+    static async previousOrdersClosed(symbol, module_id) {
+        let trades = await Trade.findAll({
+            where: {symbol, module_id, closed: 0}
+        });
         return trades.length === 0;
     }
 

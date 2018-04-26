@@ -23,6 +23,7 @@ class Pumper extends Trader {
         return {
             id: 2,
             title: 'Пампер',
+            mark: 'pumper',
             pm2_name: 'bb.pumper'
         };
     }
@@ -175,7 +176,7 @@ class Pumper extends Trader {
                 if (this._checks(symbol.symbol, lastTrades, lastCandles)) {
                     let params = JSON.parse(mp.params);
                     if (Pumper.haveToBuy(lastTrades, lastCandles, params)) {
-                        if (await Trader.previousOrdersClosed(symbol)) {
+                        if (await Trader.previousOrdersClosed(symbol.symbol, this.module.id)) {
                             let price = prices[symbol.symbol];
                             let sellHigh = Number(params['sellHigh'].value);
                             let sellLow = Number(params['sellLow'].value);
@@ -183,7 +184,7 @@ class Pumper extends Trader {
                             let takeProfit = price * (1 + sellHigh / 100);
                             let stopLoss = price * (1 - sellLow / 100);
                             let quantityRatio = Pumper.compareTradesQuantity(lastTrades);
-                            await this.trade(symbol, price, sum, takeProfit, stopLoss, 'trader', quantityRatio);
+                            await this.trade(symbol, price, sum, takeProfit, stopLoss, quantityRatio);
                         }
                     }
                 }

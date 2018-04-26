@@ -17,6 +17,7 @@ class Scalper extends Trader {
         return {
             id: 3,
             title: 'Скальпер',
+            mark: 'scalper',
             pm2_name: 'bb.scalper'
         };
     }
@@ -52,7 +53,6 @@ class Scalper extends Trader {
      * @returns {Promise<void>}
      */
     async work() {
-        let mark = 'scalper';
         let moduleParams = await this.activeParams;
         let prices = await this.bb.api.prices();
         for (let mp of moduleParams) {
@@ -67,13 +67,13 @@ class Scalper extends Trader {
                     let lastPrice = Number(prices[symbol.symbol]);
                     let priceToBuy = avgPrice * (1 - subsidence / 100);
                     if (lastPrice < priceToBuy) {
-                        let sum = Number(params['sum'].value);
-                        let sellHigh = Number(params['sellHigh'].value);
-                        let sellLow = Number(params['sellLow'].value);
-                        let takeProfit = priceToBuy * (1 + sellHigh / 100);
-                        let stopLoss = priceToBuy * (1 - sellLow / 100);
-                        if (await Scalper.previousOrdersClosed(symbol.symbol, mark)) {
-                            await this.trade(symbol, priceToBuy, sum, takeProfit, stopLoss, mark);
+                        if (await Scalper.previousOrdersClosed(symbol.symbol, this.module.id)) {
+                            let sum = Number(params['sum'].value);
+                            let sellHigh = Number(params['sellHigh'].value);
+                            let sellLow = Number(params['sellLow'].value);
+                            let takeProfit = priceToBuy * (1 + sellHigh / 100);
+                            let stopLoss = priceToBuy * (1 - sellLow / 100);
+                            await this.trade(symbol, priceToBuy, sum, takeProfit, stopLoss);
                         }
                     }
                 } else {

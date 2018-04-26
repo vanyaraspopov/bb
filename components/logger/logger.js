@@ -19,18 +19,6 @@ const logger = winston.createLogger({
     ]
 });
 
-function _dump(obj) {
-    let out = "";
-    if (obj && typeof(obj) == "object") {
-        for (let i in obj) {
-            out += i + ": " + obj[i] + "\n";
-        }
-    } else {
-        out = obj;
-    }
-    return out;
-}
-
 function _timeLabel() {
     return `[${moment().format(MOMENT_FORMAT_LOG)}]`;
 }
