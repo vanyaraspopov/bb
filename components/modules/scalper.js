@@ -42,13 +42,13 @@ class Scalper extends Trader {
             {
                 key: 'scalper_watch_order',
                 action: this.checkActiveTradesByOrders,
-                interval: 0,
+                interval: 15 * 1000,
                 title: 'Watching orders'
             },
             {
                 key: 'scalper_check_failed',
                 action: this.deactivateFailedModuleParameters,
-                interval: 20,
+                interval: 20 * 1000,
                 title: 'Checking failed trades'
             }
         ];

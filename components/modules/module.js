@@ -14,10 +14,11 @@ class BBModule {
      * @returns {Promise<*>}
      */
     get activeParams() {
-        return (async () => {
-            let params = await this.params;
-            return params.filter(p => p.active);
-        })();
+        return this.params
+            .then(params => {
+                return params.filter(p => p.active);
+            })
+            .catch(err => this.bb.log.error(err))
     }
 
     /**
