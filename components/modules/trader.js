@@ -45,39 +45,29 @@ class Trader extends BBModule {
     }
 
     /**
-     * Creates new trade
-     * @param symbol
-     * @param price
-     * @param sum
-     * @param takeProfit
-     * @param stopLoss
-     * @param ratio last volumes ratio
+     * Creates new createTrade
+     * @param {Symb} symbol
+     * @param {Number} price
+     * @param {Number} quantity
+     * @param {Number} takeProfit
+     * @param {Number} stopLoss
+     * @param {Number} ratio last volumes ratio
      */
-    async trade(symbol, price, sum, takeProfit, stopLoss, ratio = null) {
+    async createTrade(symbol, price, quantity, takeProfit, stopLoss, ratio = null) {
         let time = moment();
-        let quantity = sum / price;
         let tradeData = {
             module_id: this.module.id,
-            price,
+            price: symbol.correctPrice(price),
             time: moment(time).unix() * 1000,
             timeFormat: moment(time).utc().format(this.bb.config.moment.format),
-            quantity: quantity.toFixed(PRECISION_QUANTITY),
-            takeProfit: takeProfit.toFixed(PRECISION_PRICE),
-            stopLoss: stopLoss.toFixed(PRECISION_PRICE),
+            quantity: symbol.correctQuantity(quantity),
+            takeProfit: symbol.correctPrice(takeProfit),
+            stopLoss: symbol.correctPrice(stopLoss),
             symbol: symbol.symbol,
             mark: this.module.mark,
             ratio: ratio ? ratio.toFixed(PRECISION_QUANTITY) : ratio
         };
-        let trade = await Trade.create(tradeData);
-        if (trade && trade.id && !this.bb.config['binance'].test) {
-            let order = await this.placeLimitOrder(trade, symbol, 'BUY', price, quantity);
-            if (order) {
-                this.trackTrade(trade, symbol, order)
-                    .catch(err => this.bb.log.error(err));
-            } else {
-                trade.destroy();
-            }
-        }
+        return Trade.create(tradeData);
     }
 
     /**
@@ -333,6 +323,24 @@ class Trader extends BBModule {
     }
 
     /**
+     * Creates "MARKET" order
+     * @param {Trade} trade
+     * @param {Symb} symbol
+     * @param {string} side: "BUY" or "SELL"
+     * @param {Number} quantity
+     * @returns {Promise<Order>}
+     */
+    async placeMarketOrder(trade, symbol, side, quantity) {
+        let options = {
+            symbol: symbol.symbol,
+            side,
+            type: 'MARKET',
+            quantity
+        };
+        return this.createOrder(trade, symbol, options)
+    }
+
+    /**
      * Creates "TAKE_PROFIT_LIMIT" order
      * @param {Trade} trade
      * @param {Symb} symbol
@@ -459,7 +467,7 @@ class Trader extends BBModule {
                 this.placeLimitOrder(trade, symbol, 'SELL', currentPrice, Number(balance['free']))
                     .then(order => {
                         cleanWatchCandlesSocket();
-                        return this.waitOrderStatusFilled(symbol, order)
+                        return this.waitOrderStatusFilled(order)
                             .then(_order => order.update({
                                 status: _order.status,
                                 executedQty: _order.executedQty
@@ -478,21 +486,20 @@ class Trader extends BBModule {
 
     /**
      * Waiting until order status becomes for example "FILLED" or "CANCELED"
-     * @param {Symb} symbol
      * @param {Order} order
      * @param {string} status
      * @returns {Promise<any>}
      */
-    async waitOrderStatus(symbol, order, status) {
+    async waitOrderStatus(order, status) {
         return new Promise((resolve, reject) => {
-            let watchOrderStatusTaskKey = 'watch_order_' + order.id + '_status';
+            let watchOrderStatusTaskKey = 'watch_order_' + order['id'] + '_status';
             let watchOrderStatusTask = {
                 key: watchOrderStatusTaskKey,
                 action: (interval) => {
                     this.bb.api
                         .getOrder({
-                            symbol: symbol.symbol,
-                            orderId: order.exchange_order_id
+                            symbol: order['symbol'],
+                            orderId: order['exchange_order_id']
                         })
                         .then(_order => {
                             if (_order.status === status) {
@@ -511,24 +518,20 @@ class Trader extends BBModule {
 
     /**
      * Waiting until order status becomes "FILLED"
-     * @param {Symb} symbol
      * @param {Order} order
-     * @param {string} order
      * @returns {Promise<any>}
      */
-    async waitOrderStatusFilled(symbol, order) {
-        return this.waitOrderStatus(symbol, order, 'FILLED');
+    async waitOrderStatusFilled(order) {
+        return this.waitOrderStatus(order, 'FILLED');
     }
 
     /**
      * Waiting until order status becomes "CANCELED"
-     * @param {Symb} symbol
      * @param {Order} order
-     * @param {string} order
      * @returns {Promise<any>}
      */
-    async waitOrderStatusCanceled(symbol, order) {
-        return this.waitOrderStatus(symbol, order, 'CANCELED');
+    async waitOrderStatusCanceled(order) {
+        return this.waitOrderStatus(order, 'CANCELED');
     }
 }
 

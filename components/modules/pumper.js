@@ -196,8 +196,18 @@ class Pumper extends Trader {
                             let sum = Number(params['sum'].value);
                             let takeProfit = price * (1 + sellHigh / 100);
                             let stopLoss = price * (1 - sellLow / 100);
-                            let quantityRatio = Pumper.compareTradesQuantity(lastTrades);
-                            await this.trade(symbol, price, sum, takeProfit, stopLoss, quantityRatio);
+                            let quantity = sum / price;
+                            let ratio = Pumper.compareTradesQuantity(lastTrades);
+                            let trade = await this.createTrade(symbol, price, quantity, takeProfit, stopLoss, ratio);
+                            if (!this.bb.config['binance'].test) {
+                                let order = await this.placeMarketOrder(trade, symbol, 'BUY', trade.quantity);
+                                if (order) {
+                                    this.trackTrade(trade, symbol, order)
+                                        .catch(err => this.bb.log.error(err));
+                                } else {
+                                    trade.destroy();
+                                }
+                            }
                         }
                     }
                 }

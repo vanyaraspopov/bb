@@ -80,7 +80,17 @@ class Scalper extends Trader {
                             let sellLow = Number(params['sellLow'].value);
                             let takeProfit = priceToBuy * (1 + sellHigh / 100);
                             let stopLoss = priceToBuy * (1 - sellLow / 100);
-                            await this.trade(symbol, priceToBuy, sum, takeProfit, stopLoss);
+                            let quantity = sum / priceToBuy;
+                            let trade = await this.createTrade(symbol, priceToBuy, quantity, takeProfit, stopLoss);
+                            if (!this.bb.config['binance'].test) {
+                                let order = await this.placeLimitOrder(trade, symbol, 'BUY', trade.price, trade.quantity);
+                                if (order) {
+                                    this.trackTrade(trade, symbol, order)
+                                        .catch(err => this.bb.log.error(err));
+                                } else {
+                                    trade.destroy();
+                                }
+                            }
                         }
                     }
                 } else {
