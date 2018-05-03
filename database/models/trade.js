@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
         closed: DataTypes.BOOLEAN,
         success: DataTypes.BOOLEAN,
         mark: DataTypes.STRING,
-        ratio: DataTypes.DECIMAL
+        ratio: DataTypes.DECIMAL,
+        sell_by_time_limit: DataTypes.BOOLEAN
     }, {
         tableName: 'trades',
     });

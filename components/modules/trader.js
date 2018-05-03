@@ -476,7 +476,8 @@ class Trader extends BBModule {
                     .then(() => {
                         trade.update({
                             success: Boolean(Number(trade.price) < currentPrice),
-                            closed: true
+                            closed: true,
+                            sell_by_time_limit: timeToSell
                         });
                     })
                     .catch(err => this.bb.log.error(err));
