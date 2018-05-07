@@ -50,12 +50,6 @@ class DataCollector extends BBModule {
     get tasks() {
         return [
             {
-                key: 'collect_trades',
-                action: this.collectAggTrades,
-                interval: 60 * 1000,
-                title: 'Collecting aggregated trades info'
-            },
-            {
                 key: 'collect_candles',
                 action: this.collectCandles,
                 interval: 60 * 1000,

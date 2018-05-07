@@ -66,17 +66,8 @@ class Pumper extends Trader {
      * @returns {boolean}
      * @private
      */
-    _checks(symbol, trades, candles) {
+    _checks(symbol, candles) {
         let checksPassed = true;
-
-        checksPassed &= AggTrade.checkTradesSequence(trades);
-        if (!checksPassed) {
-            this.bb.log.error({
-                message: 'Last trades haven\'t pass checking',
-                symbol,
-                lastTrades: trades
-            });
-        }
 
         checksPassed &= Candle.checkSequence(candles);
         if (!checksPassed) {
@@ -91,38 +82,38 @@ class Pumper extends Trader {
     }
 
     /**
-     * Compares trades quantities of two last periods
-     * @param {Array} trades Last trades data
+     * Compares candles volumes of two last periods
+     * @param {Array} candles Last candles data
      * @return {Number}
      */
-    static compareTradesQuantity(trades) {
-        if (trades.length === 0) {
-            throw new Error("Array of trades shouldn't be empty");
+    static compareVolumes(candles) {
+        if (candles.length === 0) {
+            return false;
         }
-        let quantities = trades.map(t => Number(t.quantity));
+        let volumes = candles.map(candle => Number(candle.volume));
 
-        let firstPeriodQuantity = 0;
-        let secondPeriodQuantity = 0;
+        let firstPeriodVolume = 0;
+        let secondPeriodVolume = 0;
 
-        let isOdd = quantities.length % 2 === 1;
+        let isOdd = volumes.length % 2 === 1;
         if (isOdd) {
-            let middle = Math.floor(quantities.length / 2);
-            firstPeriodQuantity += quantities[middle] / 2;
-            secondPeriodQuantity += quantities[middle] / 2;
+            let middle = Math.floor(volumes.length / 2);
+            firstPeriodVolume += volumes[middle] / 2;
+            secondPeriodVolume += volumes[middle] / 2;
         }
 
-        let firstHalfLength = Math.floor(quantities.length / 2);
-        let secondHalfStart = Math.ceil(quantities.length / 2);
-        for (let i = 0; i < quantities.length; i++) {
+        let firstHalfLength = Math.floor(volumes.length / 2);
+        let secondHalfStart = Math.ceil(volumes.length / 2);
+        for (let i = 0; i < volumes.length; i++) {
             if (i < firstHalfLength) {
-                firstPeriodQuantity += quantities[i];
+                firstPeriodVolume += volumes[i];
             }
             if (i >= secondHalfStart) {
-                secondPeriodQuantity += quantities[i];
+                secondPeriodVolume += volumes[i];
             }
         }
 
-        return secondPeriodQuantity / firstPeriodQuantity;
+        return secondPeriodVolume / firstPeriodVolume;
     }
 
     /**
@@ -160,14 +151,13 @@ class Pumper extends Trader {
 
     /**
      * Makes a decision to buy
-     * @param trades
      * @param candles
      * @param params
      * @returns {boolean}
      */
-    static haveToBuy(trades, candles, params) {
+    static haveToBuy(candles, params) {
         let ratioToBuy = Number(params['buy'].value);
-        let quantityRatio = Pumper.compareTradesQuantity(trades);
+        let quantityRatio = Pumper.compareVolumes(candles);
         let priceIncreasing = Pumper.comparePrices(candles);
         return quantityRatio >= ratioToBuy && priceIncreasing;
     }
@@ -183,11 +173,10 @@ class Pumper extends Trader {
             try {
                 let symbol = mp.symbol;
                 let period = this.config.period;
-                let lastTrades = await this.getLastTrades(symbol.symbol, period);
                 let lastCandles = await this.getLastCandles(symbol.symbol, period);
-                if (this._checks(symbol.symbol, lastTrades, lastCandles)) {
+                if (this._checks(symbol.symbol, lastCandles)) {
                     let params = JSON.parse(mp.params);
-                    if (Pumper.haveToBuy(lastTrades, lastCandles, params)) {
+                    if (Pumper.haveToBuy(lastCandles, params)) {
                         if (await Trader.previousOrdersClosed(symbol.symbol, this.module.id) &&
                             !(await Trader.previousTradesFailed(symbol.symbol, this.module.id, 2))) {
                             let price = prices[symbol.symbol];
@@ -197,7 +186,7 @@ class Pumper extends Trader {
                             let takeProfit = price * (1 + sellHigh / 100);
                             let stopLoss = price * (1 - sellLow / 100);
                             let quantity = sum / price;
-                            let ratio = Pumper.compareTradesQuantity(lastTrades);
+                            let ratio = Pumper.compareVolumes(lastCandles);
                             let trade = await this.createTrade(symbol, price, quantity, takeProfit, stopLoss, ratio);
                             if (!this.bb.config['binance'].test) {
                                 let order = await this.placeMarketOrder(trade, symbol, 'BUY', trade.quantity);
